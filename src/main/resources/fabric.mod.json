@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "buganair",
+	"version": "${version}",
+	"name": "Buganair",
+	"description": "Adds a flying Boat!",
+	"authors": [
+		"HiddenHAlly"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/HiddenHAlly/Buganair_Mod"
+	},
+	"license": "MIT",
+	"icon": "assets/buganair/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.hiddenhally.buganair.BuganairMod"
+		],
+		"fabric-datagen": [
+			"net.hiddenhally.buganair.BuganairDataGenerator"
+		],
+		"client": [
+			"net.hiddenhally.buganair.BuganairModClient"
+		]
+	},
+	"mixins": [
+		"buganair.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
