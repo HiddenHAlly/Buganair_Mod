@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "transportation",
+  "group": "boat",
+  "pattern": [
+    "ddd",
+    "psp",
+    "ppp"
+  ],
+  "key": {
+    "d": {
+      "item": "minecraft:diamond"
+    },
+    "p": {
+      "item": "minecraft:oak_planks"
+    },
+    "s": {
+      "item": "minecraft:wooden_shovel"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "buganair:buganair_boat"
+  }
+}

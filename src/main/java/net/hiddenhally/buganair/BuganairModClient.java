@@ -119,7 +119,7 @@ public class BuganairModClient implements ClientModInitializer {
             }
 
             if (client.player.getVehicle() instanceof BuganairBoatEntity boat) {
-                String speedText = "Boat speed H " + boat.getHorizontalSpeed() + " b/s  V " + boat.getVerticalSpeed() + " b/s";
+                String speedText = "Boat speed §a§lH " + boat.getHorizontalSpeed() + " b/s  §4§lV " + boat.getVerticalSpeed() + " b/s";
                 int x = drawContext.getScaledWindowWidth() / 2;
                 int y = drawContext.getScaledWindowHeight() - 59;
                 drawContext.drawCenteredTextWithShadow(client.textRenderer, Text.literal(speedText), x, y, 0xFFFFFF);

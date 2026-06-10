@@ -1,5 +1,6 @@
 package net.hiddenhally.buganair.entity;
 
+import net.hiddenhally.buganair.BuganairMod;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.data.DataTracker;
@@ -8,6 +9,8 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.entity.vehicle.BoatEntity.Type;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -145,6 +148,16 @@ public class BuganairBoatEntity extends BoatEntity {
     @Override
     public Type getVariant() {
         return Type.OAK;
+    }
+
+    @Override
+    public Item asItem() {
+        return BuganairMod.BUGANAIR_BOAT_ITEM;
+    }
+
+    @Override
+    public ItemStack getPickBlockStack() {
+        return new ItemStack(BuganairMod.BUGANAIR_BOAT_ITEM);
     }
 
     private static int clampSpeed(int speed) {
