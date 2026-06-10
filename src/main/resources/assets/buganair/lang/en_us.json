@@ -1,11 +1,9 @@
 {
   "item.buganair.buganair_boat": "Buganair Boat",
   "entity.buganair.buganair_boat": "Buganair Boat",
-  "key.buganair.boat_forward": "Buganair Boat Forward",
-  "key.buganair.boat_back": "Buganair Boat Back",
-  "key.buganair.boat_left": "Buganair Boat Left",
-  "key.buganair.boat_right": "Buganair Boat Right",
-  "key.buganair.boat_up": "Buganair Boat Up",
-  "key.buganair.boat_down": "Buganair Boat Down",
+  "key.buganair.boat_speed_horizontal_up": "Buganair Boat Horizontal Speed Up",
+  "key.buganair.boat_speed_horizontal_down": "Buganair Boat Horizontal Speed Down",
+  "key.buganair.boat_speed_vertical_up": "Buganair Boat Vertical Speed Up",
+  "key.buganair.boat_speed_vertical_down": "Buganair Boat Vertical Speed Down",
   "category.buganair": "Buganair"
 }

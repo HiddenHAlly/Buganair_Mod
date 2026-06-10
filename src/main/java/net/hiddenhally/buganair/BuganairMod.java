@@ -41,6 +41,7 @@ public class BuganairMod implements ModInitializer {
             ServerPlayerEntity player = context.player();
             if (player.getWorld().getEntityById(payload.entityId()) instanceof BuganairBoatEntity boat && player.getVehicle() == boat) {
                 boat.setMovementInput(payload.forward(), payload.sideways(), payload.vertical());
+                boat.setSpeedSettings(payload.horizontalSpeed(), payload.verticalSpeed());
             }
         }));
 
