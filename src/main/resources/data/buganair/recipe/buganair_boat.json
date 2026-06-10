@@ -8,15 +8,9 @@
     "ppp"
   ],
   "key": {
-    "d": {
-      "item": "minecraft:diamond"
-    },
-    "p": {
-      "item": "minecraft:oak_planks"
-    },
-    "s": {
-      "item": "minecraft:wooden_shovel"
-    }
+    "d": "minecraft:diamond",
+    "p": "minecraft:oak_planks",
+    "s": "minecraft:wooden_shovel"
   },
   "result": {
     "count": 1,

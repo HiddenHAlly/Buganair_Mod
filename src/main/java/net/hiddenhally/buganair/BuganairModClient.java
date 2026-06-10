@@ -4,54 +4,60 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.hiddenhally.buganair.client.BuganairBoatEntityRenderer;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.entity.BoatEntityRenderer;
+import net.minecraft.client.render.entity.EntityRendererFactories;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
+import net.minecraft.util.Colors; // Assicurati di importare questo
 
 public class BuganairModClient implements ClientModInitializer {
     private static KeyBinding horizontalSpeedUpKey;
     private static KeyBinding horizontalSpeedDownKey;
     private static KeyBinding verticalSpeedUpKey;
     private static KeyBinding verticalSpeedDownKey;
+    private static final KeyBinding.Category BOAT_CATEGORY = KeyBinding.Category.create(Identifier.of(Buganair.MOD_ID, "buganair"));
 
     @Override
     public void onInitializeClient() {
-        EntityRendererRegistry.register(BuganairMod.BUGANAIR_BOAT_ENTITY_TYPE, context -> new BoatEntityRenderer(context, false));
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
 
         horizontalSpeedUpKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.buganair.boat_speed_horizontal_up",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_UP,
-            "category.buganair"
+            BOAT_CATEGORY
         ));
 
         horizontalSpeedDownKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.buganair.boat_speed_horizontal_down",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_DOWN,
-            "category.buganair"
+            BOAT_CATEGORY
         ));
 
         verticalSpeedUpKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.buganair.boat_speed_vertical_up",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_LEFT,
-            "category.buganair"
+            BOAT_CATEGORY
         ));
 
         verticalSpeedDownKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.buganair.boat_speed_vertical_down",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_RIGHT,
-            "category.buganair"
+            BOAT_CATEGORY
         ));
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
@@ -112,18 +118,28 @@ public class BuganairModClient implements ClientModInitializer {
             }
         });
 
-        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client.player == null) {
-                return;
-            }
+        HudElementRegistry.addLast(
+                Identifier.of(Buganair.MOD_ID, "boat_speed_hud"),
+                (drawContext, tickCounter) -> {
+                    MinecraftClient client = MinecraftClient.getInstance();
 
-            if (client.player.getVehicle() instanceof BuganairBoatEntity boat) {
-                String speedText = "Boat speed §a§lH " + boat.getHorizontalSpeed() + " b/s  §4§lV " + boat.getVerticalSpeed() + " b/s";
-                int x = drawContext.getScaledWindowWidth() / 2;
-                int y = drawContext.getScaledWindowHeight() - 59;
-                drawContext.drawCenteredTextWithShadow(client.textRenderer, Text.literal(speedText), x, y, 0xFFFFFF);
-            }
-        });
+                    if (client.player == null || client.options.hudHidden) {
+                        return;
+                    }
+
+                    if (client.player.getVehicle() instanceof BuganairBoatEntity boat) {
+                        Text speedText = Text.literal("Boat speed ")
+                                .formatted(Formatting.WHITE)
+                                .append(Text.literal("H " + boat.getHorizontalSpeed() + " b/s  ").formatted(Formatting.GREEN, Formatting.BOLD))
+                                .append(Text.literal("V " + boat.getVerticalSpeed() + " b/s").formatted(Formatting.RED, Formatting.BOLD));
+
+                        int x = drawContext.getScaledWindowWidth() / 2;
+                        int y = drawContext.getScaledWindowHeight() - 65;
+
+                        // Risolto: Colors.WHITE usa il formato ARGB corretto (-1 o 0xFFFFFFFF)
+                        drawContext.drawCenteredTextWithShadow(client.textRenderer, speedText, x, y, Colors.WHITE);
+                    }
+                }
+        );
     }
 }

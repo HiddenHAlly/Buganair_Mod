@@ -1,6 +1,6 @@
 package net.hiddenhally.buganair.entity;
 
-import net.hiddenhally.buganair.BuganairMod;
+import net.hiddenhally.buganair.Buganair;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.data.DataTracker;
@@ -8,12 +8,12 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.entity.vehicle.BoatEntity.Type;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Identifier;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
+import net.minecraft.registry.Registries;
 import net.minecraft.world.World;
 
 public class BuganairBoatEntity extends BoatEntity {
@@ -29,7 +29,7 @@ public class BuganairBoatEntity extends BoatEntity {
     private int verticalInput;
 
     public BuganairBoatEntity(EntityType<? extends BoatEntity> entityType, World world) {
-        super(entityType, world);
+        super(entityType, world, () -> Registries.ITEM.get(Identifier.of(Buganair.MOD_ID, "buganair_boat")));
     }
 
     @Override
@@ -128,36 +128,17 @@ public class BuganairBoatEntity extends BoatEntity {
     }
 
     @Override
-    protected void writeCustomDataToNbt(NbtCompound nbt) {
-        super.writeCustomDataToNbt(nbt);
-        nbt.putInt("BuganairHorizontalSpeed", getHorizontalSpeed());
-        nbt.putInt("BuganairVerticalSpeed", getVerticalSpeed());
+    protected void writeCustomData(WriteView view) {
+        super.writeCustomData(view);
+        view.putInt("BuganairHorizontalSpeed", getHorizontalSpeed());
+        view.putInt("BuganairVerticalSpeed", getVerticalSpeed());
     }
 
     @Override
-    protected void readCustomDataFromNbt(NbtCompound nbt) {
-        super.readCustomDataFromNbt(nbt);
-        if (nbt.contains("BuganairHorizontalSpeed")) {
-            setHorizontalSpeed(nbt.getInt("BuganairHorizontalSpeed"));
-        }
-        if (nbt.contains("BuganairVerticalSpeed")) {
-            setVerticalSpeed(nbt.getInt("BuganairVerticalSpeed"));
-        }
-    }
-
-    @Override
-    public Type getVariant() {
-        return Type.OAK;
-    }
-
-    @Override
-    public Item asItem() {
-        return BuganairMod.BUGANAIR_BOAT_ITEM;
-    }
-
-    @Override
-    public ItemStack getPickBlockStack() {
-        return new ItemStack(BuganairMod.BUGANAIR_BOAT_ITEM);
+    protected void readCustomData(ReadView view) {
+        super.readCustomData(view);
+        setHorizontalSpeed(view.getInt("BuganairHorizontalSpeed", DEFAULT_SPEED));
+        setVerticalSpeed(view.getInt("BuganairVerticalSpeed", DEFAULT_SPEED));
     }
 
     private static int clampSpeed(int speed) {
