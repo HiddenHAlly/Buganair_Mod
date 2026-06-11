@@ -10,11 +10,11 @@
   "key": {
     "c": "minecraft:chest",
     "d": "minecraft:diamond",
-    "p": "minecraft:oak_planks",
+    "p": "minecraft:dark_oak_planks",
     "s": "minecraft:wooden_shovel"
   },
   "result": {
     "count": 1,
-    "id": "buganair:buganair_boat"
+    "id": "buganair:buganair_dark_oak_boat"
   }
 }

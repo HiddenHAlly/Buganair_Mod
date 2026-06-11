@@ -13,7 +13,9 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
@@ -31,6 +33,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 // Depending on your exact mappings, this might also be called VehicleInventory
 public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedScreenHandlerFactory, RideableInventory {
     private static final int MIN_SPEED = 1;
@@ -47,8 +51,40 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
     private int sidewaysInput;
     private int verticalInput;
 
+    // 1. Register a custom data tracker string for the variant
+    private static final TrackedData<String> BOAT_VARIANT = DataTracker.registerData(BuganairBoatEntity.class, TrackedDataHandlerRegistry.STRING);
+
     public BuganairBoatEntity(EntityType<? extends BoatEntity> entityType, World world) {
-        super(entityType, world, () -> Registries.ITEM.get(Identifier.of(Buganair.MOD_ID, "buganair_boat")));
+        // This super call is absolutely required so Java knows how to build the base BoatEntity!
+        super(entityType, world, () -> getFallbackItemForType(entityType));
+    }
+
+    public void setVariant(String variant) {
+        this.dataTracker.set(BOAT_VARIANT, variant);
+    }
+
+    public String getVariant() {
+        return this.dataTracker.get(BOAT_VARIANT);
+    }
+
+    private static net.minecraft.item.Item getFallbackItemForType(EntityType<?> entityType) {
+        Identifier id = Registries.ENTITY_TYPE.getId(entityType);
+        String path = id.getPath();
+
+        String woodType = "oak"; // Default fallback
+
+        // Fix: Explicitly check for the base boat so we don't do negative string math
+        if (path.equals("buganair_boat")) {
+            woodType = "oak";
+        } else if (path.contains("_") && path.startsWith("buganair_") && path.endsWith("_boat")) {
+            woodType = path.substring("buganair_".length(), path.length() - "_boat".length());
+            if (woodType.isEmpty()) {
+                woodType = "oak";
+            }
+        }
+
+        Identifier itemId = Identifier.of(id.getNamespace(), "buganair_" + woodType + "_boat");
+        return Registries.ITEM.get(itemId);
     }
 
     @Override
@@ -56,6 +92,7 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
         super.initDataTracker(builder);
         builder.add(HORIZONTAL_SPEED, DEFAULT_SPEED);
         builder.add(VERTICAL_SPEED, DEFAULT_SPEED);
+        builder.add(BOAT_VARIANT, "oak"); // Default fallback
     }
 
     public int getHorizontalSpeed() {
@@ -163,6 +200,7 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
         super.writeCustomData(view);
         view.putInt("BuganairHorizontalSpeed", getHorizontalSpeed());
         view.putInt("BuganairVerticalSpeed", getVerticalSpeed());
+        view.putString("BuganairWoodType", this.getVariant());
         // Leverages 1.21.11 Inventories utility to save internal item list via WriteView
         Inventories.writeData(view, this.inventory);
     }
@@ -172,6 +210,9 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
         super.readCustomData(view);
         setHorizontalSpeed(view.getInt("BuganairHorizontalSpeed", DEFAULT_SPEED));
         setVerticalSpeed(view.getInt("BuganairVerticalSpeed", DEFAULT_SPEED));
+        if (view.contains("BuganairWoodType")) {
+            this.setVariant(view.getString("BuganairWoodType",this.getVariant()));
+        }
         // Leverages 1.21.11 Inventories utility to read internal item list via ReadView
         Inventories.readData(view, this.inventory);
     }

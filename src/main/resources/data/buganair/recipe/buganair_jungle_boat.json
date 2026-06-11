@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "transportation",
+  "group": "boat",
+  "pattern": [
+    "cdc",
+    "psp",
+    "ppp"
+  ],
+  "key": {
+    "c": "minecraft:chest",
+    "d": "minecraft:diamond",
+    "p": "minecraft:jungle_planks",
+    "s": "minecraft:wooden_shovel"
+  },
+  "result": {
+    "count": 1,
+    "id": "buganair:buganair_jungle_boat"
+  }
+}

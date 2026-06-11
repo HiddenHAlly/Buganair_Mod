@@ -33,7 +33,16 @@ public class BuganairModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        EntityRendererFactories.register(BuganairMod.BUGANAIR_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_ACACIA_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_BAMBOO_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_BIRCH_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_CHERRY_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_DARK_OAK_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_JUNGLE_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_MANGROVE_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_OAK_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_PALE_OAK_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+        EntityRendererFactories.register(BuganairMod.BUGANAIR_SPRUCE_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
 
         // ==========================================
         // ADD YOUR SCREEN REGISTRATION HERE
