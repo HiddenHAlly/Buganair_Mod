@@ -4,15 +4,14 @@ import net.hiddenhally.buganair.BuganairMod;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.World;
 
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 

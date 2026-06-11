@@ -4,25 +4,21 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.hiddenhally.buganair.client.BuganairBoatEntityRenderer;
-import net.hiddenhally.buganair.entity.BuganairBoatEntity;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.screen.ScreenHandlerType;
 import net.hiddenhally.buganair.client.BuganairBoatScreen; // Make sure this matches your package path!
+import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.entity.EntityRendererFactories;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors; // Assicurati di importare questo
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.util.Colors; // Assicurati di importare questo
 
 public class BuganairModClient implements ClientModInitializer {
     private static KeyBinding horizontalSpeedUpKey;
