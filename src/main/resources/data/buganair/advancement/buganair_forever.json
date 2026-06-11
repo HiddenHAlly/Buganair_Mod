@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": {
+      "id": "buganair:buganair_boat"
+    },
+    "title": {
+      "text": "Buganair Forever"
+    },
+    "description": {
+      "text": "Hacks Power"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "parent": "minecraft:story/root",
+  "criteria": {
+    "has_buganair_boat": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buganair:buganair_boat"
+          }
+        ]
+      }
+    }
+  }
+}
