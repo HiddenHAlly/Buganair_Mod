@@ -1,13 +1,27 @@
 package net.hiddenhally.buganair.entity;
 
 import net.hiddenhally.buganair.Buganair;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
+import net.minecraft.entity.RideableInventory;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.GenericContainerScreenHandler;
+import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.Identifier;
@@ -15,14 +29,19 @@ import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
 import net.minecraft.registry.Registries;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
-public class BuganairBoatEntity extends BoatEntity {
+// Depending on your exact mappings, this might also be called VehicleInventory
+public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedScreenHandlerFactory, RideableInventory {
     private static final int MIN_SPEED = 1;
     private static final int MAX_SPEED = 100;
     private static final int DEFAULT_SPEED = 7;
 
     private static final TrackedData<Integer> HORIZONTAL_SPEED = DataTracker.registerData(BuganairBoatEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> VERTICAL_SPEED = DataTracker.registerData(BuganairBoatEntity.class, TrackedDataHandlerRegistry.INTEGER);
+
+    // Creates the 27-slot list to track inventory items
+    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(54, ItemStack.EMPTY);
 
     private int forwardInput;
     private int sidewaysInput;
@@ -127,11 +146,25 @@ public class BuganairBoatEntity extends BoatEntity {
         }
     }
 
+    // New: Handle sneak right-click to view storage container UI
+    @Override
+    public ActionResult interact(PlayerEntity player, Hand hand) {
+        if (player.isSneaking()) {
+            if (!this.getEntityWorld().isClient()) {
+                player.openHandledScreen(this);
+            }
+            return ActionResult.SUCCESS;
+        }
+        return super.interact(player, hand);
+    }
+
     @Override
     protected void writeCustomData(WriteView view) {
         super.writeCustomData(view);
         view.putInt("BuganairHorizontalSpeed", getHorizontalSpeed());
         view.putInt("BuganairVerticalSpeed", getVerticalSpeed());
+        // Leverages 1.21.11 Inventories utility to save internal item list via WriteView
+        Inventories.writeData(view, this.inventory);
     }
 
     @Override
@@ -139,9 +172,105 @@ public class BuganairBoatEntity extends BoatEntity {
         super.readCustomData(view);
         setHorizontalSpeed(view.getInt("BuganairHorizontalSpeed", DEFAULT_SPEED));
         setVerticalSpeed(view.getInt("BuganairVerticalSpeed", DEFAULT_SPEED));
+        // Leverages 1.21.11 Inventories utility to read internal item list via ReadView
+        Inventories.readData(view, this.inventory);
     }
 
     private static int clampSpeed(int speed) {
         return MathHelper.clamp(speed, MIN_SPEED, MAX_SPEED);
+    }
+
+    // --- NamedScreenHandlerFactory Implementation ---
+
+    @Override
+    public Text getDisplayName() {
+        return Text.translatable("container.chestBoat");
+    }
+
+    @Nullable
+    @Override
+    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+        return GenericContainerScreenHandler.createGeneric9x6(syncId, playerInventory, this);
+    }
+
+    // --- Inventory Interface Delegations ---
+
+    @Override
+    public int size() {
+        return this.inventory.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (ItemStack itemStack : this.inventory) {
+            if (!itemStack.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public ItemStack getStack(int slot) {
+        return this.inventory.get(slot);
+    }
+
+    @Override
+    public ItemStack removeStack(int slot, int amount) {
+        return Inventories.splitStack(this.inventory, slot, amount);
+    }
+
+    @Override
+    public ItemStack removeStack(int slot) {
+        return Inventories.removeStack(this.inventory, slot);
+    }
+
+    @Override
+    public void setStack(int slot, ItemStack stack) {
+        this.inventory.set(slot, stack);
+        if (!stack.isEmpty() && stack.getCount() > this.getMaxCountPerStack()) {
+            stack.setCount(this.getMaxCountPerStack());
+        }
+        this.markDirty();
+    }
+
+    @Override
+    public void markDirty() {
+        // Persistence auto-saves elements correctly via chunk-unloads
+    }
+
+    @Override
+    public boolean canPlayerUse(PlayerEntity player) {
+        return !this.isRemoved() && player.squaredDistanceTo(this) <= 64.0;
+    }
+
+    @Override
+    public void clear() {
+        this.inventory.clear();
+    }
+
+    // ==========================================
+    // FIX 1: Open inventory when pressing 'E'
+    // ==========================================
+    @Override
+    public void openInventory(PlayerEntity player) {
+        if (!this.getEntityWorld().isClient()) {
+            player.openHandledScreen(this);
+        }
+    }
+
+    // ==========================================
+    // FIX 2: Scatter items when the boat breaks
+    // ==========================================
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        // Check if the entity is being destroyed on the server side
+        if (!this.getEntityWorld().isClient() && reason.shouldDestroy()) {
+            // Drops the contents of this inventory at the boat's location
+            net.minecraft.util.ItemScatterer.spawn(this.getEntityWorld(), this, this);
+        }
+
+        // Continue with the normal removal process (which drops the boat item)
+        super.remove(reason);
     }
 }

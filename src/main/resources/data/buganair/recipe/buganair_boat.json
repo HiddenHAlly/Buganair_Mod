@@ -3,11 +3,12 @@
   "category": "transportation",
   "group": "boat",
   "pattern": [
-    "ddd",
+    "cdc",
     "psp",
     "ppp"
   ],
   "key": {
+    "c": "minecraft:chest",
     "d": "minecraft:diamond",
     "p": "minecraft:oak_planks",
     "s": "minecraft:wooden_shovel"
