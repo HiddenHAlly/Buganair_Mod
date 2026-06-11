@@ -26,5 +26,6 @@
   "key.buganair.boat_speed_vertical_up": "Buganair Boat Vertical Speed Up",
   "key.buganair.boat_speed_vertical_down": "Buganair Boat Vertical Speed Down",
   "key.category.buganair.buganair": "Buganair",
-  "container.chestBoat": "§a§lBuganair Boat"
+  "container.chestBoat": "§a§lBuganair Boat",
+  "itemGroup.buganair.buganair_group": "Buganair Boats"
 }
