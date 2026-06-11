@@ -3,9 +3,11 @@ package net.hiddenhally.buganair;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.hiddenhally.buganair.Buganair;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.item.BuganairBoatItem;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
+import net.hiddenhally.buganair.screen.BuganairBoatScreenHandler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
@@ -13,6 +15,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.resource.featuretoggle.FeatureFlags;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
@@ -21,6 +25,15 @@ public class BuganairMod implements ModInitializer {
         RegistryKeys.ENTITY_TYPE,
         Identifier.of(Buganair.MOD_ID, "buganair_boat")
     );
+
+    // Register your custom ScreenHandlerType directly here!
+    public static final ScreenHandlerType<BuganairBoatScreenHandler> BUGANAIR_BOAT_SCREEN_HANDLER =
+            Registry.register(
+                    Registries.SCREEN_HANDLER,
+                    Identifier.of(Buganair.MOD_ID, "buganair_boat"),
+                    new ScreenHandlerType<>(BuganairBoatScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
+            );
+
     private static final RegistryKey<Item> BUGANAIR_BOAT_ITEM_KEY = RegistryKey.of(
         RegistryKeys.ITEM,
         Identifier.of(Buganair.MOD_ID, "buganair_boat")
@@ -53,6 +66,8 @@ public class BuganairMod implements ModInitializer {
                 boat.setSpeedSettings(payload.horizontalSpeed(), payload.verticalSpeed());
             }
         }));
+
+
 
         Buganair.LOGGER.info("Mod {} initialized", Buganair.MOD_ID);
     }

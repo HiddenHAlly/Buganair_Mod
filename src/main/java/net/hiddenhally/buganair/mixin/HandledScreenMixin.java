@@ -15,25 +15,36 @@ public class HandledScreenMixin {
             method = "drawForeground",
             at = @At(
                     value = "INVOKE",
-                    // Changed the ending from 'Z)I' to 'Z)V' because drawText returns void
                     target = "Lnet/minecraft/client/gui/DrawContext;drawText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;IIIZ)V"
             )
     )
-    // Changed return type from 'int' to 'void'
     private void injectTextShadow(DrawContext context, TextRenderer textRenderer, Text text, int x, int y, int color, boolean shadow) {
         HandledScreen<?> screen = (HandledScreen<?>)(Object)this;
 
-        // 1. Check if the current screen has a title
+        // 1. Check if the current screen has a main title
         if (screen.getTitle() != null) {
             String titleString = screen.getTitle().getString();
 
             // 2. Identify your boat by checking its custom title name
             if (titleString.toLowerCase().contains("buganair boat")) {
 
-                // 3. Apply the shadow ONLY to the main title text
+                // 3. Apply custom style to the main screen title text
                 if (text.equals(screen.getTitle())) {
-                    context.drawText(textRenderer, text, x, y, color, true); // Flip shadow to true
-                    return; // Exit early since we drew the text
+                    // Custom Color Example: 0xFFFFAA00 (Gold) or keep 'color' for default vanilla black
+                    int customTitleColor = 0xFFFFAA00;
+                    context.drawText(textRenderer, text, x, y, customTitleColor, true); // Flip shadow to true
+                    return;
+                }
+
+                // 4. NEW: Apply custom style to the bottom "Inventory" title text
+                // We use accessor/field matching if playerInventoryTitle is exposed, or check against the fallback Text object
+                // In vanilla HandledScreen, this draws screen.playerInventoryTitle
+                // Let's safe-check if it matches the text string or matches the screen's sub-component via a safe string comparison
+                if (text.getString().equals(net.minecraft.text.Text.translatable("container.inventory").getString()) || text.getString().equalsIgnoreCase("inventory")) {
+                    // Custom Color Example: 0xFFFF5555 (Light Red) or 0xFFFFFFFF (White)
+                    int customInventoryColor = 0xFFFFFFFF;
+                    context.drawText(textRenderer, text, x, y, customInventoryColor, true); // Flip shadow to true
+                    return;
                 }
             }
         }

@@ -9,6 +9,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.hiddenhally.buganair.client.BuganairBoatEntityRenderer;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.screen.ScreenHandlerType;
+import net.hiddenhally.buganair.client.BuganairBoatScreen; // Make sure this matches your package path!
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
@@ -31,6 +34,11 @@ public class BuganairModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         EntityRendererFactories.register(BuganairMod.BUGANAIR_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
+
+        // ==========================================
+        // ADD YOUR SCREEN REGISTRATION HERE
+        // ==========================================
+        HandledScreens.register(BuganairMod.BUGANAIR_BOAT_SCREEN_HANDLER, BuganairBoatScreen::new);
 
         horizontalSpeedUpKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.buganair.boat_speed_horizontal_up",

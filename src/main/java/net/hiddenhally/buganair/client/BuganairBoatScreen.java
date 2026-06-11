@@ -1,24 +1,52 @@
 package net.hiddenhally.buganair.client;
 
-import net.minecraft.client.font.TextRenderer;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import net.hiddenhally.buganair.Buganair;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
-public class BuganairBoatScreen extends GenericContainerScreen {
+// Changed superclass from GenericContainerScreen to HandledScreen
+public class BuganairBoatScreen extends HandledScreen<GenericContainerScreenHandler> {
+
+    // Path to your custom brown 9x6 inventory texture image
+    private static final Identifier TEXTURE = Identifier.of(Buganair.MOD_ID, "textures/gui/container/buganair_generic_9x6.png");
+
     public BuganairBoatScreen(GenericContainerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
+        // Automatically adjusts screen height variables to fit a 9x6 container layout
+        this.backgroundWidth = 176;
+        this.backgroundHeight = 114 + 6 * 18; // 222
+        this.playerInventoryTitleY = this.backgroundHeight - 94;
     }
 
     @Override
-    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
-        // 4210752 is vanilla's dark gray color (0x404040)
-        // The last argument 'true' forces the text shadow on!
-        context.drawText(this.textRenderer, this.title, this.titleX, this.titleY, 4210752, true);
+    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
 
-        // Keeps the player inventory title normal (or make it true if you want both shadowed)
-        context.drawText(this.textRenderer, this.playerInventoryTitle, this.playerInventoryTitleX, this.playerInventoryTitleY, 4210752, false);
+        // Clean 1.21.1 DrawContext call
+        context.drawTexture(
+                RenderPipelines.GUI_TEXTURED,
+                TEXTURE,
+                x,
+                y,
+                0,
+                0,
+                this.backgroundWidth,
+                this.backgroundHeight,
+                256,
+                256
+        );
+    }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        super.render(context, mouseX, mouseY, delta);
+        this.drawMouseoverTooltip(context, mouseX, mouseY);
     }
 }

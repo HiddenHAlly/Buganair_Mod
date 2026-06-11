@@ -190,7 +190,9 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return GenericContainerScreenHandler.createGeneric9x6(syncId, playerInventory, this);
+        //return GenericContainerScreenHandler.createGeneric9x6(syncId, playerInventory, this);
+        // This MUST point to BuganairBoatScreenHandler now!
+        return new net.hiddenhally.buganair.screen.BuganairBoatScreenHandler(syncId, playerInventory, this);
     }
 
     // --- Inventory Interface Delegations ---
