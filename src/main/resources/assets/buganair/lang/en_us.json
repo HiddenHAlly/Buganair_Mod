@@ -27,5 +27,15 @@
   "key.buganair.boat_speed_vertical_down": "Buganair Boat Vertical Speed Down",
   "key.category.buganair.buganair": "Buganair",
   "container.chestBoat": "§a§lBuganair Boat",
-  "itemGroup.buganair.buganair_group": "Buganair Boats"
+  "itemGroup.buganair.buganair_group": "Buganair Boats",
+
+  "item.buganair.buganair_recipe_map": "Buganair Blueprint",
+  "item.buganair.buganair_recipe_map.tooltip_1": "A mysterious engineering scroll...",
+  "item.buganair.buganair_recipe_map.tooltip_2": "Right-click to reveal the secret!",
+
+  "screen.buganair.recipe_map": "Buganair Blueprint",
+  "screen.buganair.recipe_map.title": "✦  Buganair Boat  ✦",
+  "screen.buganair.recipe_map.subtitle": "Crafting Instructions",
+  "screen.buganair.recipe_map.ingredients": "Ingredients:",
+  "screen.buganair.recipe_map.close_hint": "Press [E] or [ESC] to close"
 }

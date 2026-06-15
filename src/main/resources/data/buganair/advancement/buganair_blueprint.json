@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "id": "buganair:buganair_recipe_map"
+    },
+    "title": {
+      "text": "Arrrg! Arrrg! A Flying Pirate Boat!"
+    },
+    "description": {
+      "text": "The true story of the Flying Dutchman"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "parent": "minecraft:story/root",
+  "criteria": {
+    "has_buganair_boat": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "buganair:buganair_recipe_map"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

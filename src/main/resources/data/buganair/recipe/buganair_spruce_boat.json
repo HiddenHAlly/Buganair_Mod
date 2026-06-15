@@ -5,13 +5,14 @@
   "pattern": [
     "dsd",
     "cpc",
-    "ddd"
+    "drd"
   ],
   "key": {
     "c": "minecraft:chest",
     "d": "minecraft:diamond",
     "p": "minecraft:spruce_boat",
-    "s": "minecraft:wooden_shovel"
+    "s": "minecraft:wooden_shovel",
+    "r": "buganair:buganair_recipe_map"
   },
   "result": {
     "count": 1,

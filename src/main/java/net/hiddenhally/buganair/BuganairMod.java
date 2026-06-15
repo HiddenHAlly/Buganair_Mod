@@ -22,6 +22,12 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
+import net.minecraft.loot.LootPool;
+import net.minecraft.loot.LootTables;
+import net.minecraft.loot.condition.RandomChanceLootCondition;
+import net.minecraft.loot.entry.ItemEntry;
+import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
 
 public class BuganairMod implements ModInitializer {
     private static final RegistryKey<EntityType<?>> BUGANAIR_ACACIA_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_acacia_boat"));
@@ -34,6 +40,23 @@ public class BuganairMod implements ModInitializer {
     private static final RegistryKey<EntityType<?>> BUGANAIR_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_oak_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_pale_oak_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_spruce_boat"));
+
+    // ── Probabilità di spawn nel buried treasure (0.0f – 1.0f) ──────────────────
+    public static final float RECIPE_MAP_LOOT_CHANCE = 0.10f; // 10%
+
+    // ── Blueprint item ────────────────────────────────────────────────────────────
+    public static final Item BUGANAIR_RECIPE_MAP_ITEM = Registry.register(
+            Registries.ITEM,
+            Identifier.of(Buganair.MOD_ID, "buganair_recipe_map"),
+            new net.hiddenhally.buganair.item.BuganairRecipeMapItem(
+                    new Item.Settings()
+                            .maxCount(1)
+                            .registryKey(RegistryKey.of(
+                                    RegistryKeys.ITEM,
+                                    Identifier.of(Buganair.MOD_ID, "buganair_recipe_map")))
+            )
+    );
+
 
     // Register your custom ScreenHandlerType directly here!
     public static final ScreenHandlerType<BuganairBoatScreenHandler> BUGANAIR_BOAT_SCREEN_HANDLER =
@@ -105,6 +128,7 @@ public class BuganairMod implements ModInitializer {
                 entries.add(BuganairMod.BUGANAIR_OAK_BOAT_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_PALE_OAK_BOAT_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_SPRUCE_BOAT_ITEM.getDefaultStack());
+                entries.add(BuganairMod.BUGANAIR_RECIPE_MAP_ITEM.getDefaultStack());
             })
             .build();
 
@@ -121,6 +145,29 @@ public class BuganairMod implements ModInitializer {
         }));
         // 4. Register the group inside your onInitialize method
         Registry.register(Registries.ITEM_GROUP, BUGANAIR_ITEM_GROUP_KEY, BUGANAIR_ITEM_GROUP);
+
+        // Nuovi import necessari:
+        // import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
+        // import net.minecraft.loot.LootPool;
+        // import net.minecraft.loot.LootTables;
+        // import net.minecraft.loot.condition.RandomChanceLootCondition;
+        // import net.minecraft.loot.entry.ItemEntry;
+        // import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
+
+        LootTableEvents.MODIFY.register((registryKey, tableBuilder, source, registries) -> {
+            if (!source.isBuiltin()) return; // non toccare i datapacks di altri mod
+
+            if (LootTables.BURIED_TREASURE_CHEST.equals(registryKey)) {
+                tableBuilder.pool(
+                        LootPool.builder()
+                                .rolls(ConstantLootNumberProvider.create(1))
+                                .with(ItemEntry.builder(BUGANAIR_RECIPE_MAP_ITEM).weight(1))
+                                .conditionally(RandomChanceLootCondition.builder(RECIPE_MAP_LOOT_CHANCE))
+                );
+                Buganair.LOGGER.info("[Buganair] Blueprint injected into buried_treasure ({} chance)",
+                        RECIPE_MAP_LOOT_CHANCE);
+            }
+        });
 
 
         Buganair.LOGGER.info("Mod {} initialized", Buganair.MOD_ID);

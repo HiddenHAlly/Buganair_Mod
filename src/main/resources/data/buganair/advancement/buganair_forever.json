@@ -14,7 +14,7 @@
     "announce_to_chat": true,
     "hidden": true
   },
-  "parent": "minecraft:story/root",
+  "parent": "buganair:buganair_blueprint",
   "criteria": {
     "has_buganair_boat": {
       "trigger": "minecraft:inventory_changed",

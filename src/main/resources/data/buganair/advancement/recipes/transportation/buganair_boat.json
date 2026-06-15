@@ -1,0 +1,36 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_buganair_boat": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "buganair:buganair_recipe_map"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_buganair_boat"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "buganair:buganair_acacia_boat",
+      "buganair:buganair_bamboo_boat",
+      "buganair:buganair_birch_boat",
+      "buganair:buganair_cherry_boat",
+      "buganair:buganair_dark_oak_boat",
+      "buganair:buganair_jungle_boat",
+      "buganair:buganair_mangrove_boat",
+      "buganair:buganair_oak_boat",
+      "buganair:buganair_pale_oak_boat",
+      "buganair:buganair_spruce_boat"
+    ]
+  }
+}
