@@ -1,22 +1,31 @@
 package net.hiddenhally.buganair.client;
 
 import net.hiddenhally.buganair.BuganairMod;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class BuganairRecipeScreen extends Screen {
 
+    // Add your texture identifier at the top of the class
+    private static final Identifier BACKGROUND_TEXTURE =
+            Identifier.of("buganair", "textures/gui/buganair_bluemap.png");
+
+    //private static final int PW = 240, PH = 220;
+
     // ── layout ────────────────────────────────────────────────────────────────
-    private static final int PW = 240, PH = 220; // dimensioni pannello
+    private static final int PW = 1281/2, PH = 832/2; // dimensioni pannello
     private static final int SLOT = 18, GAP = 2, CELL = SLOT + GAP; // 20px/cella
+    private static final int OFFSET_X = 100, OFFSET_Y = 35;
 
     // Posizioni relative al pannello (px, py)
-    private static final int GRID_X = 30, GRID_Y = 52;
+    private static final int GRID_X = 30+OFFSET_X, GRID_Y = 52+OFFSET_Y;
     private static final int ARROW_X = GRID_X + 3 * CELL + 18; // 108
     private static final int ARROW_Y = GRID_Y + CELL + 5;       //  77
     private static final int RES_X   = GRID_X + 3 * CELL + 32; // 122
@@ -30,7 +39,7 @@ public class BuganairRecipeScreen extends Screen {
     private static final int C_SLOT_LT   = 0xFFCCA870;
     private static final int C_SEP       = 0xFF6B4A28;
     private static final int C_GOLD_RIM  = 0xFFB8A020;
-    private static final int C_TXT_TITLE = 0xFFAB7D57;//0xFF3E1A00;
+    private static final int C_TXT_TITLE = 0xFFFFF1E5;//322215;//B4794B;//CFA98C;//EBCBB2;//4E3927;//8B6546;//0xFFAB7D57;//0xFF3E1A00;
     private static final int C_TXT_BODY  = 0xFFFFF3E8;//0xFF5C3010;
     private static final int C_TXT_HINT  = 0xFFC79F73;//0xFF8B6040;
 
@@ -88,7 +97,7 @@ public class BuganairRecipeScreen extends Screen {
         drawGrid(ctx, px, py, mx, my);
         drawArrowAndResult(ctx, px, py, mx, my);
 
-        drawIngredientsList(ctx, px, py);
+        //drawIngredientsList(ctx, px, py);
         drawCloseHint(ctx, px, py);
 
         // Render tooltips after drawing items
@@ -101,26 +110,33 @@ public class BuganairRecipeScreen extends Screen {
 
     // ── helper di disegno ─────────────────────────────────────────────────────
 
+    // Replace your drawPanel method with this:
     private void drawPanel(DrawContext ctx, int px, int py) {
-        ctx.fill(px - 3, py - 3, px + PW + 3, py + PH + 3, C_BORDER);
-        ctx.fill(px,     py,     px + PW,     py + PH,     C_PARCHMENT);
-        ctx.fill(px + 5, py + 5, px + PW - 5, py + PH - 5, C_INNER);
+        // Draws your custom crusty image exactly where the panel goes
+        ctx.drawTexture(
+                RenderPipelines.GUI_TEXTURED,
+                BACKGROUND_TEXTURE,
+                px, py,           // Screen X, Y destination
+                0, 0,             // Texture U, V source coordinates
+                PW, PH,           // Width and Height to draw
+                1281/2, 832/2          // Total width/height of your source PNG file
+        );
     }
 
     private void drawTitle(DrawContext ctx, int px, int py) {
         ctx.drawCenteredTextWithShadow(this.textRenderer,
                 Text.translatable("screen.buganair.recipe_map.title"),
-                px + PW / 2, py + 13, C_TXT_TITLE);
+                px + PW / 2, py + 13+OFFSET_Y, C_TXT_TITLE);
     }
 
     private void drawSeparator(DrawContext ctx, int px, int py) {
-        ctx.fill(px + 14, py + 27, px + PW - 14, py + 28, C_SEP);
+        ctx.fill(px + 14+OFFSET_X, py + 27+OFFSET_Y, px + PW - 14-OFFSET_X, py + 28+OFFSET_Y, C_SEP);
     }
 
     private void drawSubtitle(DrawContext ctx, int px, int py) {
         ctx.drawCenteredTextWithShadow(this.textRenderer,
                 Text.translatable("screen.buganair.recipe_map.subtitle"),
-                px + PW / 2, py + 34, C_TXT_BODY);
+                px + PW / 2, py + 34+OFFSET_Y, C_TXT_BODY);
     }
 
     private void drawGrid(DrawContext ctx, int px, int py, int mx, int my) {
@@ -166,8 +182,8 @@ public class BuganairRecipeScreen extends Screen {
     }
 
     private void drawIngredientsList(DrawContext ctx, int px, int py) {
-        int lx = px + 18;
-        int ly = py + GRID_Y + 3 * CELL + 12;
+        int lx = px + 18+OFFSET_X;
+        int ly = py + GRID_Y + 3 * CELL + 12+OFFSET_Y;
 
         ctx.drawText(this.textRenderer,
                 Text.translatable("screen.buganair.recipe_map.ingredients"),
