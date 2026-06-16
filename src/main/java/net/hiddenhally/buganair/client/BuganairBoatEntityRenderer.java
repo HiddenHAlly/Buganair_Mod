@@ -1,6 +1,7 @@
 package net.hiddenhally.buganair.client;
 
 import net.hiddenhally.buganair.Buganair;
+import net.hiddenhally.buganair.BuganairModClient;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
@@ -14,6 +15,7 @@ import net.minecraft.client.render.state.CameraRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.util.Identifier;
+import net.hiddenhally.buganair.client.Buganair_Converted;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +33,13 @@ public class BuganairBoatEntityRenderer extends AbstractBoatEntityRenderer {
 
     public BuganairBoatEntityRenderer(EntityRendererFactory.Context context) {
         super(context);
+
+        // Create an instance of your custom model using the baked layer data
+        Buganair_Converted customModel = new Buganair_Converted(context.getPart(Buganair_Converted.LAYER_LOCATION));
+
+        // Assign your custom model to whatever boat variants you want to use it!
+        this.variantModels.put("spruce", customModel);
+
         // --- OAK VARIANT SETUP ---
         this.variantModels.put("oak", new BoatEntityModel(context.getPart(EntityModelLayers.OAK_BOAT)));
 
@@ -69,7 +78,11 @@ public class BuganairBoatEntityRenderer extends AbstractBoatEntityRenderer {
 
 
         // --- SPRUCE VARIANT SETUP ---
-        this.variantModels.put("spruce", new BoatEntityModel(context.getPart(EntityModelLayers.SPRUCE_BOAT)));
+        // Swap out the old vanilla layout line:
+        // this.variantModels.put("spruce", new BoatEntityModel(context.getPart(EntityModelLayers.SPRUCE_BOAT)));
+
+        // Replace it with your brand new custom model layer!
+        //this.variantModels.put("spruce", new BuganairSpruceBoatModel(context.getPart(BuganairModClient.BUGANAIR_SPRUCE_BOAT_LAYER)));
 
 
         // Add other variants models here as needed...

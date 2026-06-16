@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.item.BuganairBoatItem;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
@@ -42,7 +43,7 @@ public class BuganairMod implements ModInitializer {
     private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_spruce_boat"));
 
     // ── Probabilità di spawn nel buried treasure (0.0f – 1.0f) ──────────────────
-    public static final float RECIPE_MAP_LOOT_CHANCE = 0.10f; // 10%
+    public static final float RECIPE_MAP_LOOT_CHANCE = 0.05f; // 10%
 
     // ── Blueprint item ────────────────────────────────────────────────────────────
     public static final Item BUGANAIR_RECIPE_MAP_ITEM = Registry.register(
@@ -143,6 +144,7 @@ public class BuganairMod implements ModInitializer {
                 boat.setSpeedSettings(payload.horizontalSpeed(), payload.verticalSpeed());
             }
         }));
+
         // 4. Register the group inside your onInitialize method
         Registry.register(Registries.ITEM_GROUP, BUGANAIR_ITEM_GROUP_KEY, BUGANAIR_ITEM_GROUP);
 

@@ -4,9 +4,12 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.hiddenhally.buganair.client.BuganairBoatEntityRenderer;
 import net.hiddenhally.buganair.client.BuganairBoatScreen; // Make sure this matches your package path!
+import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
+import net.hiddenhally.buganair.client.Buganair_Converted;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
 import net.minecraft.client.MinecraftClient;
@@ -27,8 +30,26 @@ public class BuganairModClient implements ClientModInitializer {
     private static KeyBinding verticalSpeedDownKey;
     private static final KeyBinding.Category BOAT_CATEGORY = KeyBinding.Category.create(Identifier.of(Buganair.MOD_ID, "buganair"));
 
+    public static final net.minecraft.client.render.entity.model.EntityModelLayer BUGANAIR_SPRUCE_BOAT_LAYER =
+            new net.minecraft.client.render.entity.model.EntityModelLayer(
+                    Identifier.of(Buganair.MOD_ID, "buganair_spruce_boat"), "main"
+            );
+
     @Override
     public void onInitializeClient() {
+
+        // Put this along with your other registrations:
+        EntityModelLayerRegistry.registerModelLayer(
+                Buganair_Converted.LAYER_LOCATION,
+                Buganair_Converted::getTexturedModelData
+        );
+
+        // Register the custom spruce boat model parts layout
+        net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry.registerModelLayer(
+                BUGANAIR_SPRUCE_BOAT_LAYER,
+                BuganairSpruceBoatModel::getTexturedModelData
+        );
+
         EntityRendererFactories.register(BuganairMod.BUGANAIR_ACACIA_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
         EntityRendererFactories.register(BuganairMod.BUGANAIR_BAMBOO_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
         EntityRendererFactories.register(BuganairMod.BUGANAIR_BIRCH_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
