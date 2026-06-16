@@ -43,7 +43,7 @@ public class BuganairMod implements ModInitializer {
     private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_spruce_boat"));
 
     // ── Probabilità di spawn nel buried treasure (0.0f – 1.0f) ──────────────────
-    public static final float RECIPE_MAP_LOOT_CHANCE = 0.05f; // 10%
+    public static final float RECIPE_MAP_LOOT_CHANCE = 0.05f; // 5%
 
     // ── Blueprint item ────────────────────────────────────────────────────────────
     public static final Item BUGANAIR_RECIPE_MAP_ITEM = Registry.register(
