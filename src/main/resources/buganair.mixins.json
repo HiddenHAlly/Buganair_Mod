@@ -12,6 +12,10 @@
 		"requireAnnotations": true
 	},
 	"client": [
+		"BuganairFovMixin",
+		"BuganairMouseScrollMixin",
+		"BuganairMouseSensitivityMixin",
+		"BuganairPlayerArmPoseMixin",
 		"HandledScreenMixin"
 	]
 }

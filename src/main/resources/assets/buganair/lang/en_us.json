@@ -37,5 +37,9 @@
   "screen.buganair.recipe_map.title": "✦  Buganair Boat  ✦",
   "screen.buganair.recipe_map.subtitle": "Crafting Instructions",
   "screen.buganair.recipe_map.ingredients": "Ingredients:",
-  "screen.buganair.recipe_map.close_hint": "Press [E] or [ESC] to close"
+  "screen.buganair.recipe_map.close_hint": "Press [E] or [ESC] to close",
+
+  "item.buganair.buganair_sniper": "Buganair Sniper",
+  "item.buganair.buganair_sniper.tooltip_1": "A precision long-range weapon.",
+  "item.buganair.buganair_sniper.tooltip_2": "Right-click to aim, scroll to zoom, left-click to fire!"
 }

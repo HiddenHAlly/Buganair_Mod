@@ -22,6 +22,10 @@ import net.minecraft.util.Colors; // Assicurati di importare questo
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
+import net.hiddenhally.buganair.client.BuganairSniperClientState;
+import net.hiddenhally.buganair.item.BuganairSniperItem;
+import net.hiddenhally.buganair.network.BuganairSniperFirePayload;
+import net.minecraft.util.Hand;
 
 public class BuganairModClient implements ClientModInitializer {
     private static KeyBinding horizontalSpeedUpKey;
@@ -152,6 +156,41 @@ public class BuganairModClient implements ClientModInitializer {
             }
         });
 
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            if (client.player == null || client.world == null || client.currentScreen != null) {
+                return;
+            }
+
+            var heldItem = client.player.getMainHandStack().getItem();
+            boolean holdingSniper = heldItem instanceof BuganairSniperItem;
+
+            if (!holdingSniper) {
+                // Se cambi arma mentre sei in mira, esci automaticamente
+                if (BuganairSniperClientState.isAiming()) {
+                    BuganairSniperClientState.setAiming(false);
+                }
+                return;
+            }
+
+            // Tasto destro (piazzare blocco/usare oggetto) → attiva/disattiva la mira
+            while (client.options.useKey.wasPressed()) {
+                BuganairSniperClientState.toggleAiming();
+            }
+
+            // Tasto sinistro (attacco) → spara, solo se si è in mira
+            if (BuganairSniperClientState.isAiming()) {
+                while (client.options.attackKey.wasPressed()) {
+                    long now = client.world.getTime();
+                    if (BuganairSniperClientState.canFire(now, BuganairMod.SNIPER_FIRE_COOLDOWN_TICKS)) {
+                        BuganairSniperClientState.markFired(now);
+                        ClientPlayNetworking.send(new BuganairSniperFirePayload());
+                        client.player.swingHand(Hand.MAIN_HAND);
+                    }
+                }
+            }
+            // Se NON si è in mira, attackKey non viene toccato: il pugno/attacco normale funziona.
+        });
+
         HudElementRegistry.addLast(
                 Identifier.of(Buganair.MOD_ID, "boat_speed_hud"),
                 (drawContext, tickCounter) -> {
@@ -173,6 +212,65 @@ public class BuganairModClient implements ClientModInitializer {
                         // Risolto: Colors.WHITE usa il formato ARGB corretto (-1 o 0xFFFFFFFF)
                         drawContext.drawCenteredTextWithShadow(client.textRenderer, speedText, x, y, Colors.WHITE);
                     }
+                }
+        );
+
+        HudElementRegistry.addLast(
+                Identifier.of(Buganair.MOD_ID, "sniper_scope_overlay"),
+                (drawContext, tickCounter) -> {
+                    MinecraftClient client = MinecraftClient.getInstance();
+                    if (client.player == null || client.options.hudHidden) return;
+                    if (!BuganairSniperClientState.isAiming()) return;
+                    if (!(client.player.getMainHandStack().getItem() instanceof BuganairSniperItem)) return;
+
+                    int width = drawContext.getScaledWindowWidth();
+                    int height = drawContext.getScaledWindowHeight();
+                    int centerX = width / 2;
+                    int centerY = height / 2;
+
+                    // Dynamic radius matching the smaller viewport dimension
+                    int radius = Math.min(width, height) / 2 - 20;
+                    int blackColor = 0xFF000000;
+                    int reticleColor = 0xFF20FF20; // Neon Green Tactical Line
+
+                    // 1. Draw solid black mask outside the scope ring
+                    if (centerY - radius > 0) drawContext.fill(0, 0, width, centerY - radius, blackColor);
+                    if (centerY + radius < height) drawContext.fill(0, centerY + radius, width, height, blackColor);
+
+                    for (int y = Math.max(0, centerY - radius); y < Math.min(height, centerY + radius); y++) {
+                        double dx = Math.sqrt((double) radius * radius - (double) (y - centerY) * (y - centerY));
+                        int holeLeft = (int) (centerX - dx);
+                        int holeRight = (int) (centerX + dx);
+                        if (holeLeft > 0) drawContext.fill(0, y, holeLeft, y + 1, blackColor);
+                        if (holeRight < width) drawContext.fill(holeRight, y, width, y + 1, blackColor);
+                    }
+
+                    // 2. Fine crosshair line structure with an open central target dot area
+                    int gap = 4;
+                    int length = 40;
+
+                    // Horizontal reticle bars
+                    drawContext.fill(centerX - length, centerY, centerX - gap, centerY + 1, reticleColor);
+                    drawContext.fill(centerX + gap, centerY, centerX + length, centerY + 1, reticleColor);
+
+                    // Vertical reticle bars
+                    drawContext.fill(centerX, centerY - length, centerX + 1, centerY - gap, reticleColor);
+                    drawContext.fill(centerX, centerY + gap, centerX + 1, centerY + length, reticleColor);
+
+                    // 3. Precision distance drop ticks (Mil-dots simulation)
+                    for (int i = 1; i <= 4; i++) {
+                        int step = i * 8;
+                        // Vertical Drop markers
+                        drawContext.fill(centerX - 2, centerY + gap + step, centerX + 3, centerY + gap + step + 1, reticleColor);
+                        // Horizontal range windage indicators
+                        drawContext.fill(centerX - gap - step - 1, centerY - 2, centerX - gap - step, centerY + 3, reticleColor);
+                        drawContext.fill(centerX + gap + step, centerY - 2, centerX + gap + step + 1, centerY + 3, reticleColor);
+                    }
+
+                    // 4. Clean text overlay showing magnifying value
+                    int zoom = BuganairSniperClientState.getZoomLevel();
+                    Text zoomText = Text.literal("MAG: x" + zoom).formatted(Formatting.GREEN, Formatting.BOLD);
+                    drawContext.drawCenteredTextWithShadow(client.textRenderer, zoomText, centerX, centerY + radius - 25, 0xFFFFFFFF);
                 }
         );
     }

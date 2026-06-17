@@ -29,6 +29,18 @@ import net.minecraft.loot.LootTables;
 import net.minecraft.loot.condition.RandomChanceLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
+import net.hiddenhally.buganair.item.BuganairSniperItem;
+import net.hiddenhally.buganair.network.BuganairSniperFirePayload;
+import net.minecraft.entity.projectile.ArrowEntity;
+import net.minecraft.item.Items;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.math.Vec3d;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static net.hiddenhally.buganair.Buganair.MOD_ID;
 
@@ -43,6 +55,24 @@ public class BuganairMod implements ModInitializer {
     private static final RegistryKey<EntityType<?>> BUGANAIR_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_oak_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_pale_oak_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_spruce_boat"));
+
+    // ── Sniper: costanti regolabili ──────────────────────────────────────────
+    public static final double SNIPER_ARROW_SPEED = 20.0D;     // blocchi/tick
+    public static final float SNIPER_ARROW_DAMAGE = 8.0F;
+    public static final int SNIPER_FIRE_COOLDOWN_TICKS = 15;  // 0.75s tra un colpo e l'altro
+
+    // Cooldown server-side, indipendente da eventuali API che cambiano tra versioni
+    private static final Map<UUID, Long> SNIPER_LAST_FIRE_TICK = new HashMap<>();
+
+    public static final Item BUGANAIR_SNIPER_ITEM = Registry.register(
+            Registries.ITEM,
+            Identifier.of(MOD_ID, "buganair_sniper"),
+            new BuganairSniperItem(
+                    new Item.Settings()
+                            .maxCount(1)
+                            .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_sniper")))
+            )
+    );
 
     // ── Probabilità di spawn nel buried treasure (0.0f – 1.0f) ──────────────────
     public static final float RECIPE_MAP_LOOT_CHANCE = 0.05f; // 5%
@@ -141,12 +171,14 @@ public class BuganairMod implements ModInitializer {
                 entries.add(BuganairMod.BUGANAIR_PALE_OAK_BOAT_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_SPRUCE_BOAT_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_RECIPE_MAP_ITEM.getDefaultStack());
+                entries.add(BuganairMod.BUGANAIR_SNIPER_ITEM.getDefaultStack());
             })
             .build();
 
     @Override
     public void onInitialize() {
         PayloadTypeRegistry.playC2S().register(BuganairBoatInputPayload.ID, BuganairBoatInputPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BuganairSniperFirePayload.ID, BuganairSniperFirePayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(BuganairBoatInputPayload.ID, (payload, context) -> context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
@@ -154,6 +186,32 @@ public class BuganairMod implements ModInitializer {
                 boat.setMovementInput(payload.forward(), payload.sideways(), payload.vertical());
                 boat.setSpeedSettings(payload.horizontalSpeed(), payload.verticalSpeed());
             }
+        }));
+
+        ServerPlayNetworking.registerGlobalReceiver(BuganairSniperFirePayload.ID, (payload, context) -> context.server().execute(() -> {
+            ServerPlayerEntity player = context.player();
+            ServerWorld world = (ServerWorld) player.getEntityWorld();
+
+            long now = world.getTime();
+            long last = SNIPER_LAST_FIRE_TICK.getOrDefault(player.getUuid(), 0L);
+            if (now - last < SNIPER_FIRE_COOLDOWN_TICKS) {
+                return; // ancora in cooldown, ignora il colpo
+            }
+            SNIPER_LAST_FIRE_TICK.put(player.getUuid(), now);
+
+            Vec3d direction = player.getRotationVector();
+
+            // Costruttore "comodo": imposta automaticamente owner e posizione di spawn
+            // agli occhi di 'player'. Se l'IDE segnala un errore qui, prova invece:
+            // new ArrowEntity(world, player.getEyePos().x, player.getEyePos().y, player.getEyePos().z, new ItemStack(Items.ARROW))
+            ArrowEntity arrow = new ArrowEntity(world, player, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
+            arrow.setNoGravity(true);
+            arrow.setVelocity(direction.multiply(SNIPER_ARROW_SPEED));
+            arrow.setDamage(SNIPER_ARROW_DAMAGE);
+
+            world.spawnEntity(arrow);
+            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                    SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 1.0F, 1.0F);
         }));
 
         // 4. Register the group inside your onInitialize method
