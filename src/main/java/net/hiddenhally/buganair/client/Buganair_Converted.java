@@ -166,10 +166,15 @@ public class Buganair_Converted extends EntityModel<BoatEntityRenderState> {
 		// Direct offsets targeting the root block structure:
 
 		// 1. Shift upwards by 18 pixels (Positive Y moves downwards in MC models)
-		this.root.originY = -18.0F;
+		this.root.originY = -20.5F*2;
+		//this.root.originX = -18.0F;
 
 		// 2. Rotate 90 degrees counter-clockwise to counter the right-shift alignment
 		// (If it ends up facing backwards instead, flip this value to positive: 1.5708F)
 		this.root.yaw = -1.5708F;
+
+		this.root.xScale=2f;
+		this.root.yScale=2f;
+		this.root.zScale=2f;
 	}
 }

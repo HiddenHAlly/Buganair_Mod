@@ -30,17 +30,19 @@ import net.minecraft.loot.condition.RandomChanceLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
 
+import static net.hiddenhally.buganair.Buganair.MOD_ID;
+
 public class BuganairMod implements ModInitializer {
-    private static final RegistryKey<EntityType<?>> BUGANAIR_ACACIA_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_acacia_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_BAMBOO_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_bamboo_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_BIRCH_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_birch_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_CHERRY_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_cherry_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_DARK_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_dark_oak_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_JUNGLE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_jungle_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_MANGROVE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_mangrove_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_oak_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_pale_oak_boat"));
-    private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(Buganair.MOD_ID, "buganair_spruce_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_ACACIA_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_acacia_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_BAMBOO_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_bamboo_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_BIRCH_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_birch_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_CHERRY_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_cherry_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_DARK_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_dark_oak_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_JUNGLE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_jungle_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_MANGROVE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_mangrove_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_oak_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_pale_oak_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_spruce_boat"));
 
     // ── Probabilità di spawn nel buried treasure (0.0f – 1.0f) ──────────────────
     public static final float RECIPE_MAP_LOOT_CHANCE = 0.05f; // 5%
@@ -48,13 +50,13 @@ public class BuganairMod implements ModInitializer {
     // ── Blueprint item ────────────────────────────────────────────────────────────
     public static final Item BUGANAIR_RECIPE_MAP_ITEM = Registry.register(
             Registries.ITEM,
-            Identifier.of(Buganair.MOD_ID, "buganair_recipe_map"),
+            Identifier.of(MOD_ID, "buganair_recipe_map"),
             new net.hiddenhally.buganair.item.BuganairRecipeMapItem(
                     new Item.Settings()
                             .maxCount(1)
                             .registryKey(RegistryKey.of(
                                     RegistryKeys.ITEM,
-                                    Identifier.of(Buganair.MOD_ID, "buganair_recipe_map")))
+                                    Identifier.of(MOD_ID, "buganair_recipe_map")))
             )
     );
 
@@ -63,13 +65,13 @@ public class BuganairMod implements ModInitializer {
     public static final ScreenHandlerType<BuganairBoatScreenHandler> BUGANAIR_BOAT_SCREEN_HANDLER =
             Registry.register(
                     Registries.SCREEN_HANDLER,
-                    Identifier.of(Buganair.MOD_ID, "buganair_boat"),
+                    Identifier.of(MOD_ID, "buganair_boat"),
                     new ScreenHandlerType<>(BuganairBoatScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
             );
 
     private static final RegistryKey<Item> BUGANAIR_BOAT_ITEM_KEY = RegistryKey.of(
         RegistryKeys.ITEM,
-        Identifier.of(Buganair.MOD_ID, "buganair_boat")
+        Identifier.of(MOD_ID, "buganair_boat")
     );
 
     public static final EntityType<BuganairBoatEntity> BUGANAIR_ACACIA_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_ACACIA_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_ACACIA_BOAT_ENTITY_KEY));
@@ -81,12 +83,21 @@ public class BuganairMod implements ModInitializer {
     public static final EntityType<BuganairBoatEntity> BUGANAIR_MANGROVE_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_MANGROVE_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_MANGROVE_BOAT_ENTITY_KEY));
     public static final EntityType<BuganairBoatEntity> BUGANAIR_OAK_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_OAK_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_OAK_BOAT_ENTITY_KEY));
     public static final EntityType<BuganairBoatEntity> BUGANAIR_PALE_OAK_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY));
-    public static final EntityType<BuganairBoatEntity> BUGANAIR_SPRUCE_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_SPRUCE_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_SPRUCE_BOAT_ENTITY_KEY));
-
+    //public static final EntityType<BuganairBoatEntity> BUGANAIR_SPRUCE_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_SPRUCE_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_SPRUCE_BOAT_ENTITY_KEY));
+    public static final EntityType<BuganairBoatEntity> BUGANAIR_SPRUCE_BOAT_ENTITY_TYPE = Registry.register(
+            Registries.ENTITY_TYPE,
+            BUGANAIR_SPRUCE_BOAT_ENTITY_KEY,
+            EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC)
+                    // Vanilla boat is (1.375F, 0.5625F).
+                    // Put your custom Spruce dimensions right here!
+                    .dimensions(2.375F, 1.0625F)
+                    .maxTrackingRange(10)
+                    .build(BUGANAIR_SPRUCE_BOAT_ENTITY_KEY)
+    );
 
     // Create a quick helper method to register items easily
     private static Item registerBoatItem(String woodName) {
-        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Buganair.MOD_ID, "buganair_" + woodName + "_boat"));
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_" + woodName + "_boat"));
         return Registry.register(
                 Registries.ITEM,
                 key,
@@ -109,7 +120,7 @@ public class BuganairMod implements ModInitializer {
     // 1. Create the Registry Key for your custom tab
     public static final RegistryKey<ItemGroup> BUGANAIR_ITEM_GROUP_KEY = RegistryKey.of(
             RegistryKeys.ITEM_GROUP,
-            Identifier.of(Buganair.MOD_ID, "buganair_group")
+            Identifier.of(MOD_ID, "buganair_group")
     );
 
     // 2. Build the ItemGroup instance
@@ -172,6 +183,6 @@ public class BuganairMod implements ModInitializer {
         });
 
 
-        Buganair.LOGGER.info("Mod {} initialized", Buganair.MOD_ID);
+        Buganair.LOGGER.info("Mod {} initialized", MOD_ID);
     }
 }

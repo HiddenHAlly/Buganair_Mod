@@ -1,14 +1,12 @@
 package net.hiddenhally.buganair.entity;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MovementType;
-import net.minecraft.entity.RideableInventory;
+import net.minecraft.entity.*;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
@@ -27,6 +25,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Vec3d;
 
 // Depending on your exact mappings, this might also be called VehicleInventory
 public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedScreenHandlerFactory, RideableInventory {
@@ -88,6 +88,93 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
         builder.add(BOAT_VARIANT, "oak"); // Default fallback
     }
 
+    @Override
+    public boolean isFireImmune() {
+        return true; // Makes the boat immune to fire and lava damage
+    }
+
+    @Override
+    protected int getMaxPassengers() {
+        return "spruce".equals(this.getVariant()) ? 4 : 2;
+    }
+
+    @Override
+    public boolean canAddPassenger(net.minecraft.entity.Entity passenger) {
+        // Check if we are the spruce variant to allow 4 slots, otherwise 2
+        //int maxPassengers = "spruce".equals(this.getVariant()) ? 4 : 2;
+
+        // The core check: Are we full?
+        // This allows any entity (player or mob) to join until the limit is reached.
+        return this.getPassengerList().size() < getMaxPassengers();
+    }
+
+    @Override
+    protected Vec3d getPassengerAttachmentPos(net.minecraft.entity.Entity passenger, net.minecraft.entity.EntityDimensions dimensions, float scale) {
+        // 1. Fallback for all other standard boats (keeps them working normally)
+        if (!"spruce".equals(this.getVariant())) {
+            return super.getPassengerAttachmentPos(passenger, dimensions, scale);
+        }
+
+        // 2. Establish baseline offsets for the SPRUCE boat
+        double heightOffset = (double)dimensions.height() - 0.2;
+        double modelXOffset = -0.6; // Your global forward shift
+
+        // Local coordinates (Forward is -X)
+        double localX = 0.0;
+        double localZ = 0.0;
+
+        int totalPassengers = this.getPassengerList().size();
+        int index = this.getPassengerList().indexOf(passenger);
+
+        // Define seating spread distances
+        double frontX = -0.4; // Shifted Forward (-X)
+        double backX = 0.4;   // Shifted Backward (+X)
+        double leftZ = -0.4;   // Shifted Left (-Z)
+        double rightZ = 0.4; // Shifted Right (+Z)
+
+        // 3. Dynamic Grid Layout Logic
+        if (totalPassengers == 1) {
+            // [ 1 ] (Center Front)
+            if (index == 0) { localX = frontX; localZ = 0.0; }
+
+        } else if (totalPassengers == 2) {
+            // [ 1  2 ] (Side by Side Front)
+            if (index == 0) { localX = frontX; localZ = leftZ; }
+            else if (index == 1) { localX = frontX; localZ = rightZ; }
+
+        } else if (totalPassengers == 3) {
+            // [ 1  2 ]
+            // [   3  ]
+            if (index == 0) { localX = frontX; localZ = leftZ; }
+            else if (index == 1) { localX = frontX; localZ = rightZ; }
+            else if (index == 2) { localX = backX; localZ = 0.0; } // Center Back
+
+        } else { // 4 Players
+            // [ 1  2 ]
+            // [ 3  4 ]
+            if (index == 0) { localX = frontX; localZ = leftZ; }
+            else if (index == 1) { localX = frontX; localZ = rightZ; }
+            else if (index == 2) { localX = backX; localZ = leftZ; }
+            else if (index == 3) { localX = backX; localZ = rightZ; }
+        }
+
+        // Apply your model's global shift
+        localX += modelXOffset;
+
+        // 4. Rotate the local offset vector based on the boat's yaw
+        // (Using your exact math to support -X as forward)
+        float yawRadians = (float)Math.toRadians(this.getYaw());
+        double rotatedX = -localZ * Math.cos(yawRadians) + localX * Math.sin(yawRadians);
+        double rotatedZ = -localZ * Math.sin(yawRadians) - localX * Math.cos(yawRadians);
+
+        // If it's a mob, you might want to adjust the Y offset slightly
+        if (!(passenger instanceof PlayerEntity)) {
+            heightOffset -= 0.3; // Example: shift mobs down 0.3 blocks
+        }
+
+        return new Vec3d(rotatedX, heightOffset, rotatedZ);
+    }
+
     public int getHorizontalSpeed() {
         return this.dataTracker.get(HORIZONTAL_SPEED);
     }
@@ -146,7 +233,24 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
             verticalInput = 0;
             setVelocity(Vec3d.ZERO);
         }
+
     }
+
+    // 2. THE BYPASS: Intercept the ejection command
+//    @Override
+//    public void removeAllPassengers() {
+//        // AbstractBoatEntity calls this in exactly two places:
+//        // 1. When ticksUnderwater >= 60.0F
+//        // 2. When dragged down by a bubble column
+//
+//        // By NOT calling super.removeAllPassengers() here, we completely
+//        // ignore the boat's attempt to kick everyone out.
+//
+//        // We only allow ejection if the boat is actually being broken/killed.
+//        if (this.isRemoved()) {
+//            super.removeAllPassengers();
+//        }
+//    }
 
     private Vec3d getMovementVector(float yaw) {
         double x = sidewaysInput;
@@ -171,7 +275,7 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
 
     @Override
     public void onPassengerLookAround(net.minecraft.entity.Entity passenger) {
-        if (passenger instanceof PlayerEntity player) {
+        if (passenger instanceof PlayerEntity player && passenger == getControllingPassenger()) {
             setYaw(player.getYaw());
         }
     }
