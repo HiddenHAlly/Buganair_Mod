@@ -185,6 +185,8 @@ public class BuganairModClient implements ClientModInitializer {
                         BuganairSniperClientState.markFired(now);
                         ClientPlayNetworking.send(new BuganairSniperFirePayload());
                         client.player.swingHand(Hand.MAIN_HAND);
+                        // Inside your firing method:
+                        client.player.getItemCooldownManager().set(BuganairMod.BUGANAIR_SNIPER_ITEM.getDefaultStack(), BuganairMod.SNIPER_FIRE_COOLDOWN_TICKS); // 20 ticks = 1 second cooldown
                     }
                 }
             }
@@ -219,7 +221,7 @@ public class BuganairModClient implements ClientModInitializer {
                 Identifier.of(Buganair.MOD_ID, "sniper_scope_overlay"),
                 (drawContext, tickCounter) -> {
                     MinecraftClient client = MinecraftClient.getInstance();
-                    if (client.player == null || client.options.hudHidden) return;
+                    if (client.player == null) return;
                     if (!BuganairSniperClientState.isAiming()) return;
                     if (!(client.player.getMainHandStack().getItem() instanceof BuganairSniperItem)) return;
 
@@ -227,49 +229,49 @@ public class BuganairModClient implements ClientModInitializer {
                     int height = drawContext.getScaledWindowHeight();
                     int centerX = width / 2;
                     int centerY = height / 2;
-
-                    // Dynamic radius matching the smaller viewport dimension
                     int radius = Math.min(width, height) / 2 - 20;
-                    int blackColor = 0xFF000000;
-                    int reticleColor = 0xFF20FF20; // Neon Green Tactical Line
 
-                    // 1. Draw solid black mask outside the scope ring
+                    int blackColor = 0xAA000000;
+
+                    // 1. PERFECT CIRCULAR CUTOUT (Math instead of Scissor)
+                    // Fill the solid black areas above and below the circular lens
                     if (centerY - radius > 0) drawContext.fill(0, 0, width, centerY - radius, blackColor);
                     if (centerY + radius < height) drawContext.fill(0, centerY + radius, width, height, blackColor);
 
-                    for (int y = Math.max(0, centerY - radius); y < Math.min(height, centerY + radius); y++) {
-                        double dx = Math.sqrt((double) radius * radius - (double) (y - centerY) * (y - centerY));
+                    // Carve out the circular hole row by row
+                    for (int y = Math.max(0, centerY - radius); y <= Math.min(height, centerY + radius); y++) {
+                        double dy = y - centerY;
+                        double dx = Math.sqrt((radius * radius) - (dy * dy));
                         int holeLeft = (int) (centerX - dx);
                         int holeRight = (int) (centerX + dx);
+
+                        // Draw left side of the screen up to the circle's edge
                         if (holeLeft > 0) drawContext.fill(0, y, holeLeft, y + 1, blackColor);
+                        // Draw right side of the screen from the circle's edge to the border
                         if (holeRight < width) drawContext.fill(holeRight, y, width, y + 1, blackColor);
                     }
 
-                    // 2. Fine crosshair line structure with an open central target dot area
-                    int gap = 4;
-                    int length = 40;
-
-                    // Horizontal reticle bars
-                    drawContext.fill(centerX - length, centerY, centerX - gap, centerY + 1, reticleColor);
-                    drawContext.fill(centerX + gap, centerY, centerX + length, centerY + 1, reticleColor);
-
-                    // Vertical reticle bars
-                    drawContext.fill(centerX, centerY - length, centerX + 1, centerY - gap, reticleColor);
-                    drawContext.fill(centerX, centerY + gap, centerX + 1, centerY + length, reticleColor);
-
-                    // 3. Precision distance drop ticks (Mil-dots simulation)
-                    for (int i = 1; i <= 4; i++) {
-                        int step = i * 8;
-                        // Vertical Drop markers
-                        drawContext.fill(centerX - 2, centerY + gap + step, centerX + 3, centerY + gap + step + 1, reticleColor);
-                        // Horizontal range windage indicators
-                        drawContext.fill(centerX - gap - step - 1, centerY - 2, centerX - gap - step, centerY + 3, reticleColor);
-                        drawContext.fill(centerX + gap + step, centerY - 2, centerX + gap + step + 1, centerY + 3, reticleColor);
+                    // 2. VISUAL COOLDOWN BAR
+                    float cooldown = client.player.getItemCooldownManager().getCooldownProgress(client.player.getMainHandStack(), 0.0f);
+                    if (cooldown > 0) {
+                        int barWidth = 60;
+                        int barHeight = 4;
+                        int x1 = centerX - (barWidth / 2);
+                        int y1 = centerY + 30;
+                        drawContext.fill(x1, y1, x1 + barWidth, y1 + barHeight, 0x88000000); // BG
+                        drawContext.fill(x1, y1, x1 + (int)(barWidth * (1 - cooldown)), y1 + barHeight, 0xFFFF0000); // Progress (Red)
                     }
 
-                    // 4. Clean text overlay showing magnifying value
+                    // 3. RETICLE
+                    int color = 0xFF20FF20;
+                    drawContext.fill(centerX - 20, centerY, centerX - 5, centerY + 1, color);
+                    drawContext.fill(centerX + 5, centerY, centerX + 20, centerY + 1, color);
+                    drawContext.fill(centerX, centerY - 20, centerX + 1, centerY - 5, color);
+                    drawContext.fill(centerX, centerY + 5, centerX + 1, centerY + 20, color);
+
+                    // 4. MAGNIFICATION TEXT
                     int zoom = BuganairSniperClientState.getZoomLevel();
-                    Text zoomText = Text.literal("MAG: x" + zoom).formatted(Formatting.GREEN, Formatting.BOLD);
+                    net.minecraft.text.Text zoomText = net.minecraft.text.Text.literal("MAG: x" + zoom).formatted(net.minecraft.util.Formatting.GREEN, net.minecraft.util.Formatting.BOLD);
                     drawContext.drawCenteredTextWithShadow(client.textRenderer, zoomText, centerX, centerY + radius - 25, 0xFFFFFFFF);
                 }
         );
