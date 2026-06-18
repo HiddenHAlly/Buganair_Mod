@@ -120,7 +120,7 @@ public class BuganairMod implements ModInitializer {
             EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC)
                     // Vanilla boat is (1.375F, 0.5625F).
                     // Put your custom Spruce dimensions right here!
-                    .dimensions(2.375F, 1.0625F)
+                    .dimensions(2.625F, 1.0625F)
                     .maxTrackingRange(10)
                     .build(BUGANAIR_SPRUCE_BOAT_ENTITY_KEY)
     );
