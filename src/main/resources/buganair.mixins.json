@@ -3,6 +3,7 @@
 	"package": "net.hiddenhally.buganair.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"BuganairGliderPhysicsMixin",
 		"ExampleMixin"
 	],
 	"injectors": {
@@ -12,11 +13,14 @@
 		"requireAnnotations": true
 	},
 	"client": [
+		"BuganairCameraMixin",
 		"BuganairFovMixin",
 		"BuganairHudVisibilityMixin",
 		"BuganairMouseScrollMixin",
 		"BuganairMouseSensitivityMixin",
 		"BuganairPlayerArmPoseMixin",
-		"HandledScreenMixin"
+		"HandledScreenMixin",
+		"LocalPlayerGliderMixin",
+		"client.CameraGliderMixin"
 	]
 }

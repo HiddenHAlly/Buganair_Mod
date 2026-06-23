@@ -41,5 +41,9 @@
 
   "item.buganair.buganair_sniper": "Buganair Sniper",
   "item.buganair.buganair_sniper.tooltip_1": "A precision long-range weapon.",
-  "item.buganair.buganair_sniper.tooltip_2": "Right-click to aim, scroll to zoom, left-click to fire!"
+  "item.buganair.buganair_sniper.tooltip_2": "Right-click to aim, scroll to zoom, left-click to fire!",
+
+  "item.buganair.buganair_hang_glider": "Buganair Hang Glider",
+  "item.buganair.buganair_hang_glider.tooltip_1": "Soar through the skies!",
+  "item.buganair.buganair_hang_glider.tooltip_2": "Right-click mid-air to deploy."
 }

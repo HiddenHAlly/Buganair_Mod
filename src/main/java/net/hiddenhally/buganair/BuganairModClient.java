@@ -12,6 +12,7 @@ import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
 import net.hiddenhally.buganair.client.Buganair_Converted;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
+import net.hiddenhally.buganair.network.BuganairGliderOrientationPayload;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.option.KeyBinding;
@@ -26,6 +27,9 @@ import net.hiddenhally.buganair.client.BuganairSniperClientState;
 import net.hiddenhally.buganair.item.BuganairSniperItem;
 import net.hiddenhally.buganair.network.BuganairSniperFirePayload;
 import net.minecraft.util.Hand;
+import net.hiddenhally.buganair.client.BuganairGliderClientState;
+import net.hiddenhally.buganair.item.BuganairHangGliderItem;
+import net.hiddenhally.buganair.network.BuganairGliderTogglePayload;
 
 public class BuganairModClient implements ClientModInitializer {
     private static KeyBinding horizontalSpeedUpKey;
@@ -191,6 +195,70 @@ public class BuganairModClient implements ClientModInitializer {
                 }
             }
             // Se NON si è in mira, attackKey non viene toccato: il pugno/attacco normale funziona.
+        });
+
+//        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+//            if (client.player == null || client.world == null || client.currentScreen != null) {
+//                return;
+//            }
+//
+//            boolean hasGliderInMainHand = client.player.getMainHandStack().getItem() instanceof BuganairHangGliderItem;
+//            boolean hasGliderInOffHand = client.player.getOffHandStack().getItem() instanceof BuganairHangGliderItem;
+//            boolean holdingGlider = hasGliderInMainHand || hasGliderInOffHand;
+//
+//            if (holdingGlider) {
+//                // Toggle the glider state when the use key (right-click) is pressed
+//                while (client.options.useKey.wasPressed()) {
+//                    // Prevent toggling if the player is safely on the ground
+//                    if (!client.player.isOnGround()) {
+//                        BuganairGliderClientState.toggleGliding();
+//                        ClientPlayNetworking.send(new BuganairGliderTogglePayload(BuganairGliderClientState.isGliding()));
+//                    }
+//                }
+//            } else {
+//                // Auto-disable if the player switches off the item while gliding
+//                if (BuganairGliderClientState.isGliding()) {
+//                    BuganairGliderClientState.setGliding(false);
+//                    ClientPlayNetworking.send(new BuganairGliderTogglePayload(false));
+//                }
+//            }
+//        });
+
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            if (client.player == null) return;
+
+            boolean holdingGlider = client.player.getMainHandStack().getItem() instanceof BuganairHangGliderItem ||
+                    client.player.getOffHandStack().getItem() instanceof BuganairHangGliderItem;
+
+            if (BuganairGliderClientState.isGliding() && (client.player.isOnGround() || !holdingGlider)) {
+                BuganairGliderClientState.setGliding(false);
+                ClientPlayNetworking.send(new net.hiddenhally.buganair.network.BuganairGliderTogglePayload(false));
+            }
+        });
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player == null) return;
+
+            if (BuganairGliderClientState.isGliding()) {
+                // Ground landing auto-cancel check
+                if (client.player.isOnGround()) {
+                    BuganairGliderClientState.setGliding(false);
+                    ClientPlayNetworking.send(new BuganairGliderOrientationPayload(0, 0, 0));
+                    return;
+                }
+
+                // Gather keyboard strafe keys for A/D yaw maneuvers
+                boolean strafeLeft  = client.options.leftKey.isPressed();
+                boolean strafeRight = client.options.rightKey.isPressed();
+                BuganairGliderClientState.handleKeyboardInput(strafeLeft, strafeRight);
+
+                // Send current orientation payload to server for validation
+                ClientPlayNetworking.send(new BuganairGliderOrientationPayload(
+                        BuganairGliderClientState.getPitch(),
+                        BuganairGliderClientState.getYaw(),
+                        BuganairGliderClientState.getRoll()
+                ));
+            }
         });
 
         HudElementRegistry.addLast(

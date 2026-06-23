@@ -8,6 +8,7 @@ import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.item.BuganairBoatItem;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
+import net.hiddenhally.buganair.network.BuganairGliderOrientationPayload;
 import net.hiddenhally.buganair.screen.BuganairBoatScreenHandler;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -37,6 +38,9 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Vec3d;
+import net.hiddenhally.buganair.item.BuganairHangGliderItem;
+import net.hiddenhally.buganair.network.BuganairGliderTogglePayload;
+import net.hiddenhally.buganair.BuganairServerGliderState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +75,16 @@ public class BuganairMod implements ModInitializer {
                     new Item.Settings()
                             .maxCount(1)
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_sniper")))
+            )
+    );
+
+    public static final Item BUGANAIR_HANG_GLIDER_ITEM = Registry.register(
+            Registries.ITEM,
+            Identifier.of(MOD_ID, "buganair_hang_glider"),
+            new BuganairHangGliderItem(
+                    new Item.Settings()
+                            .maxCount(1)
+                            .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_hang_glider")))
             )
     );
 
@@ -172,6 +186,7 @@ public class BuganairMod implements ModInitializer {
                 entries.add(BuganairMod.BUGANAIR_SPRUCE_BOAT_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_RECIPE_MAP_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_SNIPER_ITEM.getDefaultStack());
+                entries.add(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM.getDefaultStack());
             })
             .build();
 
@@ -179,6 +194,9 @@ public class BuganairMod implements ModInitializer {
     public void onInitialize() {
         PayloadTypeRegistry.playC2S().register(BuganairBoatInputPayload.ID, BuganairBoatInputPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairSniperFirePayload.ID, BuganairSniperFirePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BuganairGliderTogglePayload.ID, BuganairGliderTogglePayload.CODEC);
+        // Register the custom payload channel
+        PayloadTypeRegistry.playC2S().register(BuganairGliderOrientationPayload.ID, BuganairGliderOrientationPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(BuganairBoatInputPayload.ID, (payload, context) -> context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
@@ -213,6 +231,19 @@ public class BuganairMod implements ModInitializer {
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
                     SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 1.0F, 1.0F);
         }));
+
+        // Handle the packet when received from a client
+        ServerPlayNetworking.registerGlobalReceiver(net.hiddenhally.buganair.network.BuganairGliderTogglePayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                BuganairServerGliderState.setGliding(context.player().getUuid(), payload.isGliding());
+            });
+        });
+
+        // Process arriving client flight updates on the logical server
+        ServerPlayNetworking.registerGlobalReceiver(BuganairGliderOrientationPayload.ID, (payload, context) -> {
+            ServerPlayerEntity player = context.player();
+            BuganairServerGliderState.updateOrientation(player.getUuid(), payload.pitch(), payload.yaw(), payload.roll());
+        });
 
         // 4. Register the group inside your onInitialize method
         Registry.register(Registries.ITEM_GROUP, BUGANAIR_ITEM_GROUP_KEY, BUGANAIR_ITEM_GROUP);
