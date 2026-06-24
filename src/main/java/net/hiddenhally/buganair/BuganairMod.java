@@ -10,7 +10,10 @@ import net.hiddenhally.buganair.item.BuganairBoatItem;
 import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
 import net.hiddenhally.buganair.network.BuganairGliderOrientationPayload;
 import net.hiddenhally.buganair.screen.BuganairBoatScreenHandler;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.EquippableComponent;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -37,6 +40,7 @@ import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Unit;
 import net.minecraft.util.math.Vec3d;
 import net.hiddenhally.buganair.item.BuganairHangGliderItem;
 import net.hiddenhally.buganair.network.BuganairGliderTogglePayload;
@@ -85,6 +89,10 @@ public class BuganairMod implements ModInitializer {
                     new Item.Settings()
                             .maxCount(1)
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_hang_glider")))
+                            .component(DataComponentTypes.GLIDER, Unit.INSTANCE)
+                            .component(
+                                    DataComponentTypes.EQUIPPABLE,
+                                    EquippableComponent.builder(EquipmentSlot.CHEST).build())
             )
     );
 
@@ -233,10 +241,15 @@ public class BuganairMod implements ModInitializer {
         }));
 
         // Handle the packet when received from a client
-        ServerPlayNetworking.registerGlobalReceiver(net.hiddenhally.buganair.network.BuganairGliderTogglePayload.ID, (payload, context) -> {
-            context.server().execute(() -> {
-                BuganairServerGliderState.setGliding(context.player().getUuid(), payload.isGliding());
-            });
+        ServerPlayNetworking.registerGlobalReceiver(BuganairGliderTogglePayload.ID, (payload, context) -> {
+            ServerPlayerEntity player = context.player();
+            boolean wantsToGlide = payload.isGliding();
+
+            if (wantsToGlide && BuganairHangGliderItem.isWearingGlider(player) && !player.isOnGround()) {
+                BuganairServerGliderState.setGliding(player.getUuid(), true);
+            } else {
+                BuganairServerGliderState.setGliding(player.getUuid(), false);
+            }
         });
 
         // Process arriving client flight updates on the logical server

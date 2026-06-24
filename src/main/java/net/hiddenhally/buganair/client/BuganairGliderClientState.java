@@ -59,13 +59,34 @@ public final class BuganairGliderClientState {
     }
 
     public static void handleKeyboardInput(boolean strafeLeft, boolean strafeRight) {
-        float keyboardYawSpeed = 2.0f;
-        if (strafeLeft)  yaw -= keyboardYawSpeed;
-        if (strafeRight) yaw += keyboardYawSpeed;
+        float rollSpeed = 4.0f; // Gradi di inclinazione a tick
+        float bankingTurnSpeed = 0.5f; // Quanto lo yaw deve girare a tick in base al roll
 
-        // Aerodynamic self-stabilization: slowly pulls the wings flat if no mouse input occurs
-        if (Math.abs(roll) > 0.01f) {
-            roll *= 0.94f;
+        if (strafeLeft) {
+            roll += rollSpeed;
+        }
+        if (strafeRight) {
+            roll -= rollSpeed;
+        }
+
+        // Limita l'inclinazione massima delle ali
+        if (roll > 45.0f) roll = 45.0f;
+        if (roll < -45.0f) roll = -45.0f;
+
+        // Se l'ala è inclinata, facciamo girare lo YAW fluidamente in base al ROLL!
+        if (Math.abs(roll) > 0.1f) {
+            // roll / 45f ci dà un valore da -1.0 a 1.0, moltiplicato per la velocità di virata
+            yaw += (-roll / 45.0f) * bankingTurnSpeed;
+            yaw = MathHelper.wrapDegrees(yaw);
+        }
+
+        // Auto-stabilizzazione: se non si premono i tasti, il deltaplano torna dritto
+        if (!strafeLeft && !strafeRight) {
+            if (Math.abs(roll) > 0.1f) {
+                roll *= 0.85f; // Torna piatto del 15% ogni tick
+            } else {
+                roll = 0f;
+            }
         }
     }
 }

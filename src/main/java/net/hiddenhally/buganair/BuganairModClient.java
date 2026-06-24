@@ -18,15 +18,14 @@ import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.entity.EntityRendererFactories;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
-import net.minecraft.util.Colors; // Assicurati di importare questo
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.*;
 import org.lwjgl.glfw.GLFW;
 import net.hiddenhally.buganair.client.BuganairSniperClientState;
 import net.hiddenhally.buganair.item.BuganairSniperItem;
 import net.hiddenhally.buganair.network.BuganairSniperFirePayload;
-import net.minecraft.util.Hand;
 import net.hiddenhally.buganair.client.BuganairGliderClientState;
 import net.hiddenhally.buganair.item.BuganairHangGliderItem;
 import net.hiddenhally.buganair.network.BuganairGliderTogglePayload;
@@ -224,11 +223,12 @@ public class BuganairModClient implements ClientModInitializer {
 //            }
 //        });
 
+
+
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
 
-            boolean holdingGlider = client.player.getMainHandStack().getItem() instanceof BuganairHangGliderItem ||
-                    client.player.getOffHandStack().getItem() instanceof BuganairHangGliderItem;
+            boolean holdingGlider = client.player.getEquippedStack(EquipmentSlot.CHEST).getItem() instanceof BuganairHangGliderItem;
 
             if (BuganairGliderClientState.isGliding() && (client.player.isOnGround() || !holdingGlider)) {
                 BuganairGliderClientState.setGliding(false);
@@ -250,7 +250,14 @@ public class BuganairModClient implements ClientModInitializer {
                 // Gather keyboard strafe keys for A/D yaw maneuvers
                 boolean strafeLeft  = client.options.leftKey.isPressed();
                 boolean strafeRight = client.options.rightKey.isPressed();
+                // 1. Calcola la fisica dell'input della tastiera
                 BuganairGliderClientState.handleKeyboardInput(strafeLeft, strafeRight);
+
+                // 2. LA CHIAVE: Applica subito i nuovi angoli al giocatore per evitare lo scatto visivo!
+                client.player.setYaw(BuganairGliderClientState.getYaw());
+                client.player.setPitch(BuganairGliderClientState.getPitch());
+
+                // 3. Invia i dati aggiornati al server per sincronizzare la fisica di volo sul server
 
                 // Send current orientation payload to server for validation
                 ClientPlayNetworking.send(new BuganairGliderOrientationPayload(

@@ -1,7 +1,9 @@
 package net.hiddenhally.buganair.mixin;
 
+import net.hiddenhally.buganair.BuganairMod;
 import net.hiddenhally.buganair.BuganairServerGliderState;
 import net.hiddenhally.buganair.client.BuganairGliderClientState;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -31,11 +33,13 @@ public abstract class BuganairGliderPhysicsMixin {
 
         // Recupera gli angoli non vincolati dallo stato corretto
         if (isClient) {
-            isGliding = BuganairGliderClientState.isGliding();
+            isGliding = BuganairGliderClientState.isGliding() && player.getEquippedStack(EquipmentSlot.CHEST)
+                    .isOf(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM);
             pitch = BuganairGliderClientState.getPitch();
             yaw = BuganairGliderClientState.getYaw();
         } else {
-            isGliding = BuganairServerGliderState.isGliding(player.getUuid());
+            isGliding = BuganairServerGliderState.isGliding(player.getUuid()) && player.getEquippedStack(EquipmentSlot.CHEST)
+                    .isOf(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM);
             pitch = BuganairServerGliderState.getPitch(player.getUuid());
             yaw = BuganairServerGliderState.getYaw(player.getUuid());
         }

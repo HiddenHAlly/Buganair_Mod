@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static net.hiddenhally.buganair.item.BuganairHangGliderItem.isWearingGlider;
+
 @Mixin(Entity.class)
 public abstract class EntityGliderRotationMixin {
 
@@ -22,7 +24,7 @@ public abstract class EntityGliderRotationMixin {
 
         // 1. Controllo lato Server (per la fisica gestita dal server e i razzi lato server)
         if (self instanceof ServerPlayerEntity player) {
-            if (BuganairServerGliderState.isGliding(player.getUuid())) {
+            if (BuganairServerGliderState.isGliding(player.getUuid()) && isWearingGlider(player)) {
                 float pitch = BuganairServerGliderState.getPitch(player.getUuid());
                 float yaw = BuganairServerGliderState.getYaw(player.getUuid()); // Assicurati di avere questo getter nel server state
 
@@ -30,8 +32,8 @@ public abstract class EntityGliderRotationMixin {
             }
         }
         // 2. Controllo lato Client (per predizione locale e particelle dei razzi)
-        else if (self instanceof ClientPlayerEntity) {
-            if (BuganairGliderClientState.isGliding()) {
+        else if (self instanceof ClientPlayerEntity player) {
+            if (BuganairGliderClientState.isGliding() && isWearingGlider(player)) {
                 float pitch = BuganairGliderClientState.getPitch();
                 float yaw = BuganairGliderClientState.getYaw();
 

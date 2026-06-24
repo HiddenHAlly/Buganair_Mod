@@ -22,6 +22,7 @@
 		"BuganairPlayerArmPoseMixin",
 		"HandledScreenMixin",
 		"LocalPlayerGliderMixin",
-		"client.CameraGliderMixin"
+		"client.CameraGliderMixin",
+		"client.ClientPlayerGliderTickMixin"
 	]
 }
