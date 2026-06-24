@@ -240,9 +240,12 @@ public class BuganairMod implements ModInitializer {
         });
 
         // Process arriving client flight updates on the logical server
+        // Process arriving client flight updates safely on the logical server main thread
         ServerPlayNetworking.registerGlobalReceiver(BuganairGliderOrientationPayload.ID, (payload, context) -> {
-            ServerPlayerEntity player = context.player();
-            BuganairServerGliderState.updateOrientation(player.getUuid(), payload.pitch(), payload.yaw(), payload.roll());
+            context.server().execute(() -> {
+                ServerPlayerEntity player = context.player();
+                BuganairServerGliderState.updateOrientation(player.getUuid(), payload.pitch(), payload.yaw(), payload.roll());
+            });
         });
 
         // 4. Register the group inside your onInitialize method
