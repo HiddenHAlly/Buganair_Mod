@@ -43,8 +43,9 @@ public abstract class BuganairCameraMixin {
             //float targetRoll = -yawDelta * 3.0f;
             //targetRoll = MathHelper.clamp(targetRoll, -45.0f, 45.0f);
             // Usa direttamente il roll calcolato nello stato client!
-            float currentRoll = BuganairGliderClientState.getRoll();
-            buganair$currentRoll = MathHelper.lerp(0.05f, buganair$currentRoll, currentRoll);
+            float currentRoll = BuganairGliderClientState.getRoll() - yawDelta * 3.0f;
+            float targetRoll = MathHelper.clamp(currentRoll, -45.0f, 45.0f);
+            buganair$currentRoll = MathHelper.lerp(0.05f, buganair$currentRoll, targetRoll);
 
             // Convert to radians for JOML
             float yawRad = (float) Math.toRadians(180-this.yaw);
