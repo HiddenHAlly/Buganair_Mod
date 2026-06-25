@@ -137,11 +137,12 @@ public class BuganairRadarClientState {
             }
 
             // 2. Draw Expanding Cube Bubble Effect
-            float expandTime = 2000f;
+            float expandTime = 4000f;
             float progress = Math.min(1.0f, elapsed / expandTime);
-            double currentRadius = BuganairConfig.INSTANCE.radarRadius * Math.pow(progress, 0.5);
+            double currentRadius = (BuganairConfig.INSTANCE.radarRadius*5/4)* Math.pow(progress, 0.5)-(BuganairConfig.INSTANCE.radarRadius*1/4);
 
-            if (progress < 1.0f) {
+            if (progress < 1.0f && currentRadius >= 0.0) {
+                //Buganair.LOGGER.info("{}",currentRadius);
                 double cx = radarCenter.getX() + 0.5 - camPos.x;
                 double cy = radarCenter.getY() + 0.5 - camPos.y;
                 double cz = radarCenter.getZ() + 0.5 - camPos.z;
@@ -151,7 +152,9 @@ public class BuganairRadarClientState {
                 //float alpha = 1.0f;
 
                 VertexConsumer fillBuffer =
-                        vertexConsumers.getBuffer(RenderLayers.debugFilledBox());
+                        vertexConsumers.getBuffer(RenderLayer.of(
+                                "debug_filled_box", RenderSetup.builder(RenderPipelines.DEBUG_FILLED_BOX).translucent().layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).outputTarget(OutputTarget.OUTLINE_TARGET).build()
+                        ));
 
                 drawFilledCube(
                         context.matrices().peek().getPositionMatrix(),
@@ -183,7 +186,14 @@ public class BuganairRadarClientState {
 //                );
 
                 VertexConsumer outlineBuffer =
-                        vertexConsumers.getBuffer(RenderLayers.lines());
+                        vertexConsumers.getBuffer(RenderLayer.of(
+                                "lines_always",
+                                RenderSetup.builder(RenderPipelines.LINES)
+                                        .layeringTransform(LayeringTransform.NO_LAYERING)
+                                        .outputTarget(OutputTarget.OUTLINE_TARGET)//.useOverlay()
+                                        //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
+                                        .build()
+                        ));
 
                 VertexRendering.drawOutline(
                         context.matrices(),
