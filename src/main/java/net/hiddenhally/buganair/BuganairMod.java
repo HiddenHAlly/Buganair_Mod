@@ -42,6 +42,7 @@ import net.minecraft.util.Unit;
 import net.minecraft.util.math.Vec3d;
 import net.hiddenhally.buganair.item.BuganairHangGliderItem;
 import net.hiddenhally.buganair.BuganairServerGliderState;
+import net.minecraft.item.equipment.EquipmentAssetKeys; // Make sure to import this!
 
 import java.util.HashMap;
 import java.util.Map;
@@ -79,6 +80,8 @@ public class BuganairMod implements ModInitializer {
             )
     );
 
+
+
     public static final Item BUGANAIR_HANG_GLIDER_ITEM = Registry.register(
             Registries.ITEM,
             Identifier.of(MOD_ID, "buganair_hang_glider"),
@@ -89,7 +92,11 @@ public class BuganairMod implements ModInitializer {
                             .component(DataComponentTypes.GLIDER, Unit.INSTANCE)
                             .component(
                                     DataComponentTypes.EQUIPPABLE,
-                                    EquippableComponent.builder(EquipmentSlot.CHEST).build())
+                                    EquippableComponent.builder(EquipmentSlot.CHEST)
+                                            // Fixed: Swapped to EquipmentAssetKeys.REGISTRY_KEY
+                                            .model(RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, Identifier.of(MOD_ID, "buganair_hang_glider")))
+                                            .build()
+                            )
             )
     );
 

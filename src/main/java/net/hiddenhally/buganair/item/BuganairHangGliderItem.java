@@ -26,8 +26,8 @@ public class BuganairHangGliderItem extends Item {
         super(settings);
     }
 
-    @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+    //@Override
+    //public ActionResult use(World world, PlayerEntity user, Hand hand) {
 //        ItemStack stack = user.getStackInHand(hand);
 //
 //        // Glider can only be deployed mid-air
@@ -41,8 +41,8 @@ public class BuganairHangGliderItem extends Item {
 //            return ActionResult.SUCCESS;
 //        }
 
-        return ActionResult.PASS;
-    }
+    //    return ActionResult.PASS;
+    //}
 
     public static boolean isWearingGlider(PlayerEntity player) {
         return player.getEquippedStack(EquipmentSlot.CHEST)
