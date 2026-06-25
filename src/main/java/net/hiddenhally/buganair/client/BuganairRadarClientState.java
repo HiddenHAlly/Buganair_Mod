@@ -55,7 +55,7 @@ public class BuganairRadarClientState {
             if (pos.getSquaredDistance(center) <= radius * radius) {
                 BlockState state = client.world.getBlockState(pos);
 
-                if (state.isIn(ORE_TAG)) {
+                if (state.isIn(ORE_TAG) || state.toString().contains("ore")) {
 //                    if (state.equals(Blocks.COAL_ORE.getDefaultState())) {
 //                        Buganair.LOGGER.info("Coal Ore");
 //                    }
