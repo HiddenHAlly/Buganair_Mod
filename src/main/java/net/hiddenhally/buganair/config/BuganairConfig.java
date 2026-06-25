@@ -18,6 +18,8 @@ public class BuganairConfig {
     public int radarRadius = 30;
     public int radarDurationSeconds = 30;
     public int radarCooldownSeconds = 10;
+    public float radarOutlineSize = 2.0f;
+    public float outlineSize = 1.0f;
 
     // Format is ARGB: Alpha (Opacity), Red, Green, Blue
     public int outlineColor = 0xFFFF00FF; // Solid Cyan

@@ -131,7 +131,7 @@ public class BuganairRadarClientState {
                         y,
                         z,
                         outlineColor-BuganairConfig.INSTANCE.outlineColorAlphaRemoval,
-                        1.0f
+                        BuganairConfig.INSTANCE.outlineSize
                 );
                 //RenderLayers.debugFilledBox().
             }
@@ -196,7 +196,7 @@ public class BuganairRadarClientState {
                         cy,
                         cz,
                         bubbleColor,
-                        2.0f
+                        BuganairConfig.INSTANCE.radarOutlineSize
                 );
                 //drawBoxLines(matrix, lineBuffer, cx - r, cy - r, cz - r, cx + r, cy + r, cz + r, bR, bG, bB, bA * (1.0f - progress));
             }
