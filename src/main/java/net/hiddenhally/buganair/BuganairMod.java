@@ -7,8 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.item.BuganairBoatItem;
-import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
-import net.hiddenhally.buganair.network.BuganairGliderOrientationPayload;
+import net.hiddenhally.buganair.network.*;
 import net.hiddenhally.buganair.screen.BuganairBoatScreenHandler;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.EquippableComponent;
@@ -34,7 +33,6 @@ import net.minecraft.loot.condition.RandomChanceLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
 import net.hiddenhally.buganair.item.BuganairSniperItem;
-import net.hiddenhally.buganair.network.BuganairSniperFirePayload;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
@@ -43,7 +41,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.Vec3d;
 import net.hiddenhally.buganair.item.BuganairHangGliderItem;
-import net.hiddenhally.buganair.network.BuganairGliderTogglePayload;
 import net.hiddenhally.buganair.BuganairServerGliderState;
 
 import java.util.HashMap;
@@ -93,6 +90,15 @@ public class BuganairMod implements ModInitializer {
                             .component(
                                     DataComponentTypes.EQUIPPABLE,
                                     EquippableComponent.builder(EquipmentSlot.CHEST).build())
+            )
+    );
+
+    // 1. Add Item Registry
+    public static final Item BUGANAIR_ORE_RADAR_ITEM = Registry.register(
+            Registries.ITEM,
+            Identifier.of(MOD_ID, "buganair_ore_radar"),
+            new net.hiddenhally.buganair.item.BuganairOreRadarItem(
+                    new Item.Settings().maxCount(1).registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_ore_radar")))
             )
     );
 
@@ -195,11 +201,19 @@ public class BuganairMod implements ModInitializer {
                 entries.add(BuganairMod.BUGANAIR_RECIPE_MAP_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_SNIPER_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM.getDefaultStack());
+                entries.add(BuganairMod.BUGANAIR_ORE_RADAR_ITEM.getDefaultStack());
             })
             .build();
 
     @Override
     public void onInitialize() {
+
+        // 2. Load Config first
+        net.hiddenhally.buganair.config.BuganairConfig.load();
+
+        // 3. Register Payload
+        PayloadTypeRegistry.playS2C().register(BuganairRadarSyncPayload.ID, BuganairRadarSyncPayload.CODEC);
+
         PayloadTypeRegistry.playC2S().register(BuganairBoatInputPayload.ID, BuganairBoatInputPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairSniperFirePayload.ID, BuganairSniperFirePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairGliderTogglePayload.ID, BuganairGliderTogglePayload.CODEC);

@@ -6,13 +6,9 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.hiddenhally.buganair.client.BuganairBoatEntityRenderer;
-import net.hiddenhally.buganair.client.BuganairBoatScreen; // Make sure this matches your package path!
-import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
-import net.hiddenhally.buganair.client.Buganair_Converted;
+import net.hiddenhally.buganair.client.*;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
-import net.hiddenhally.buganair.network.BuganairBoatInputPayload;
-import net.hiddenhally.buganair.network.BuganairGliderOrientationPayload;
+import net.hiddenhally.buganair.network.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.option.KeyBinding;
@@ -23,12 +19,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
 import org.lwjgl.glfw.GLFW;
-import net.hiddenhally.buganair.client.BuganairSniperClientState;
 import net.hiddenhally.buganair.item.BuganairSniperItem;
-import net.hiddenhally.buganair.network.BuganairSniperFirePayload;
-import net.hiddenhally.buganair.client.BuganairGliderClientState;
 import net.hiddenhally.buganair.item.BuganairHangGliderItem;
-import net.hiddenhally.buganair.network.BuganairGliderTogglePayload;
 
 public class BuganairModClient implements ClientModInitializer {
     private static KeyBinding horizontalSpeedUpKey;
@@ -44,6 +36,14 @@ public class BuganairModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        // Add this near the top
+        BuganairRadarClientState.registerRenderer();
+
+        ClientPlayNetworking.registerGlobalReceiver(BuganairRadarSyncPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                BuganairRadarClientState.startRadar(payload.center());
+            });
+        });
 
         // Put this along with your other registrations:
         EntityModelLayerRegistry.registerModelLayer(
