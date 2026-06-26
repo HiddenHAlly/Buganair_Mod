@@ -39,10 +39,17 @@ public class BuganairModClient implements ClientModInitializer {
     public void onInitializeClient() {
         // Add this near the top
         BuganairRadarClientState.registerRenderer();
+        BuganairScoutingFlareClientState.registerRenderer();
 
         ClientPlayNetworking.registerGlobalReceiver(BuganairRadarSyncPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 BuganairRadarClientState.startRadar(payload.center());
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(BuganairScoutingFlareSyncPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                BuganairScoutingFlareClientState.startRadar(payload.center());
             });
         });
 
@@ -69,6 +76,10 @@ public class BuganairModClient implements ClientModInitializer {
         EntityRendererFactories.register(BuganairMod.BUGANAIR_PALE_OAK_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
         EntityRendererFactories.register(BuganairMod.BUGANAIR_SPRUCE_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
 
+        EntityRendererFactories.register(
+                BuganairMod.SCOUTING_FLARE_ENTITY_TYPE,
+                net.minecraft.client.render.entity.FlyingItemEntityRenderer::new
+        );
         // ==========================================
         // ADD YOUR SCREEN REGISTRATION HERE
         // ==========================================

@@ -142,9 +142,9 @@ public class BuganairRadarClientState {
             }
 
             // 2. Draw Expanding Cube Bubble Effect
-            float expandTime = 4000f;
+            float expandTime = BuganairConfig.INSTANCE.radarExpandTime;
             float progress = Math.min(1.0f, elapsed / expandTime);
-            double currentRadius = (BuganairConfig.INSTANCE.radarRadius*5/4)* Math.pow(progress, 0.5)-(BuganairConfig.INSTANCE.radarRadius*1/4);
+            double currentRadius = (BuganairConfig.INSTANCE.radarRadius*5.0/4.0)* Math.pow(progress, 0.5)-(BuganairConfig.INSTANCE.radarRadius*1.0/4.0);
 
             if (progress < 1.0f && currentRadius >= 0.0) {
                 //Buganair.LOGGER.info("{}",currentRadius);
@@ -193,12 +193,19 @@ public class BuganairRadarClientState {
                 VertexConsumer outlineBuffer =
                         vertexConsumers.getBuffer(RenderLayer.of(
                                 "lines_always",
-                                RenderSetup.builder(RenderPipelines.LINES)
+                                RenderSetup.builder(RenderPipelines.LINES_TRANSLUCENT)
                                         .layeringTransform(LayeringTransform.NO_LAYERING)
                                         .outputTarget(OutputTarget.OUTLINE_TARGET)//.useOverlay()
                                         //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
                                         .build()
                         ));
+
+                // Convert back to an integer scale (0 - 255)
+                int alphaInt = (int) (255-progress * 255);
+
+                // Strip the original alpha from outlineColor and apply the new one
+                int baseColorRGB = bubbleColor & 0x00FFFFFF;
+                int dynamicColor = (alphaInt << 24) | baseColorRGB;
 
                 VertexRendering.drawOutline(
                         context.matrices(),
@@ -210,7 +217,7 @@ public class BuganairRadarClientState {
                         cx,
                         cy,
                         cz,
-                        bubbleColor,
+                        dynamicColor,
                         BuganairConfig.INSTANCE.radarOutlineSize
                 );
                 //drawBoxLines(matrix, lineBuffer, cx - r, cy - r, cz - r, cx + r, cy + r, cz + r, bR, bG, bB, bA * (1.0f - progress));
@@ -258,7 +265,7 @@ public class BuganairRadarClientState {
         return outlineColor;
     }
 
-    private static void drawFilledCube(
+    public static void drawFilledCube(
             Matrix4f matrix,
             VertexConsumer buffer,
             float minX,

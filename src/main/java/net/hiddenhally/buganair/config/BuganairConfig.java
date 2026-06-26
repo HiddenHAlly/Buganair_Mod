@@ -19,12 +19,28 @@ public class BuganairConfig {
     public float SNIPER_ARROW_DAMAGE = 3.0F;
     public int SNIPER_FIRE_COOLDOWN_TICKS = 15;  // 0.75s tra un colpo e l'altro
 
+    public int smallFireParticles = 25;
+    public int smokeParticles = 40;
+    public int campfireSignalSmokeParticles = 60;
+    public int explosionParticles = 20;
+    public int lavaParticles = 50;
+
+    public int entityRadarRadius = 30;
+    public int entityRadarDurationSeconds = 30;
+    public int entityRadarCooldownSeconds = 5;
+    public float entityRadarExpandTime = 4000f;
+    public float entityRadarOutlineSize = 2.0f;
+    public int entityOutlineColor = 0xFF00FF00; // Solid Cyan
+    public int entityBubbleColor = 0x4400FF00;  // 25% Transparent Cyan
+
     // Default configuration values
     public int radarRadius = 30;
     public int radarDurationSeconds = 30;
     public int radarCooldownSeconds = 10;
+    public float radarExpandTime = 4000f;
     public float radarOutlineSize = 2.0f;
     public float outlineSize = 1.0f;
+
     public float thermalLiftBoost = 0.7f; // ~7 blocks/sec di salita massima, sensazione morbida
 
     // Format is ARGB: Alpha (Opacity), Red, Green, Blue
@@ -44,6 +60,8 @@ public class BuganairConfig {
     public int bubbleColor = 0x4400FFFF;  // 25% Transparent Cyan
 
     public static BuganairConfig INSTANCE = new BuganairConfig();
+
+
 
     public static void load() {
         if (CONFIG_FILE.exists()) {

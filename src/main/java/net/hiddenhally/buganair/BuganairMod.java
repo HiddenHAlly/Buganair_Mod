@@ -78,6 +78,7 @@ public class BuganairMod implements ModInitializer {
     private static final RegistryKey<EntityType<?>> BUGANAIR_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_oak_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_pale_oak_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_spruce_boat"));
+    private static final RegistryKey<EntityType<?>> BUGANAIR_SCOUTING_FLARE_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_scouting_flare"));
 
 
 
@@ -157,6 +158,28 @@ public class BuganairMod implements ModInitializer {
                                     RegistryKeys.ITEM,
                                     Identifier.of(MOD_ID, "buganair_recipe_map")))
             )
+    );
+
+    // 1. Registrazione dell'Item del Bengala
+    public static final Item BUGANAIR_SCOUTING_FLARE_ITEM = Registry.register(
+            Registries.ITEM,
+            net.minecraft.util.Identifier.of(MOD_ID, "scouting_flare"),
+            new net.hiddenhally.buganair.item.BuganairScoutingFlareItem(
+                    new Item.Settings()
+                            .maxCount(16) // Stackabile fino a 16 unità
+                            .registryKey(RegistryKey.of(RegistryKeys.ITEM, net.minecraft.util.Identifier.of(MOD_ID, "scouting_flare")))
+            )
+    );
+
+    // 2. Registrazione dell'Entità del Bengala
+    public static final EntityType<net.hiddenhally.buganair.entity.BuganairScoutingFlareEntity> SCOUTING_FLARE_ENTITY_TYPE = Registry.register(
+            Registries.ENTITY_TYPE,
+            net.minecraft.util.Identifier.of(MOD_ID, "scouting_flare"),
+            EntityType.Builder.<net.hiddenhally.buganair.entity.BuganairScoutingFlareEntity>create(net.hiddenhally.buganair.entity.BuganairScoutingFlareEntity::new, SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f)
+                    .maxTrackingRange(4)
+                    .trackingTickInterval(10)
+                    .build(BUGANAIR_SCOUTING_FLARE_ENTITY_KEY)
     );
 
 
@@ -246,6 +269,7 @@ public class BuganairMod implements ModInitializer {
                 entries.add(BuganairMod.BUGANAIR_SNIPER_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_ORE_RADAR_ITEM.getDefaultStack());
+                entries.add(BuganairMod.BUGANAIR_SCOUTING_FLARE_ITEM.getDefaultStack());
             })
             .build();
 
@@ -297,11 +321,27 @@ public class BuganairMod implements ModInitializer {
             }
         });
 
+        // Run this inside your main onInitialize() method
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            var scoreboard = server.getScoreboard();
+            if (scoreboard.getNullableObjective("using_scouting_flare") == null) {
+                scoreboard.addObjective(
+                        "using_scouting_flare",
+                        ScoreboardCriterion.DUMMY,
+                        Text.literal("Is Using Scouting Flare"),
+                        ScoreboardCriterion.RenderType.INTEGER,
+                        true,
+                        null
+                );
+            }
+        });
+
         // 2. Load Config first
         net.hiddenhally.buganair.config.BuganairConfig.load();
 
         // 3. Register Payload
         PayloadTypeRegistry.playS2C().register(BuganairRadarSyncPayload.ID, BuganairRadarSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(BuganairScoutingFlareSyncPayload.ID, BuganairScoutingFlareSyncPayload.CODEC);
 
         PayloadTypeRegistry.playC2S().register(BuganairBoatInputPayload.ID, BuganairBoatInputPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairSniperFirePayload.ID, BuganairSniperFirePayload.CODEC);
@@ -309,6 +349,7 @@ public class BuganairMod implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(BuganairSniperScopePayload.ID, BuganairSniperScopePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairGliderPayload.ID, BuganairGliderPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairOreRadarPayload.ID, BuganairOreRadarPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BuganairScoutingFlarePayload.ID, BuganairScoutingFlarePayload.CODEC);
 
         PayloadTypeRegistry.playC2S().register(BuganairGliderTogglePayload.ID, BuganairGliderTogglePayload.CODEC);
         // Register the custom payload channel
@@ -398,6 +439,24 @@ public class BuganairMod implements ModInitializer {
 
                     // Updates the integer value directly on the scoreboard channel
                     scoreAccess.setScore(payload.isSearching() ? 1 : 0);
+                }
+            });
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(BuganairScoutingFlarePayload.ID, (payload, context) -> {
+            // Ensure processing happens safely on the main server thread
+            context.server().execute(() -> {
+                var player = context.player();
+                var server = context.server();
+                Scoreboard scoreboard = server.getScoreboard();
+                ScoreboardObjective objective = scoreboard.getNullableObjective("using_scouting_flare");
+
+                if (objective != null) {
+                    // In modern versions, getOrCreateScore returns a ScoreAccess controller interface
+                    ScoreAccess scoreAccess = scoreboard.getOrCreateScore(player, objective);
+
+                    // Updates the integer value directly on the scoreboard channel
+                    scoreAccess.setScore(payload.isScouting() ? 1 : 0);
                 }
             });
         });
