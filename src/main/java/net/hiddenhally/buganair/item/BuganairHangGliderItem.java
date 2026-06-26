@@ -1,23 +1,14 @@
 package net.hiddenhally.buganair.item;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.hiddenhally.buganair.BuganairMod;
-import net.hiddenhally.buganair.BuganairServerGliderState;
-import net.hiddenhally.buganair.client.BuganairGliderClientState;
-import net.hiddenhally.buganair.network.BuganairGliderTogglePayload;
 import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
+import net.minecraft.item.Item; // Extends base Item again
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
-
-import java.util.List;
 import java.util.function.Consumer;
 
 public class BuganairHangGliderItem extends Item {
@@ -26,27 +17,9 @@ public class BuganairHangGliderItem extends Item {
         super(settings);
     }
 
-    //@Override
-    //public ActionResult use(World world, PlayerEntity user, Hand hand) {
-//        ItemStack stack = user.getStackInHand(hand);
-//
-//        // Glider can only be deployed mid-air
-//        if (!user.isOnGround()) {
-//            if (world.isClient()) {
-//                // Toggle client physics state
-//                BuganairGliderClientState.toggleGliding();
-//                // Inform the server about the change
-//                ClientPlayNetworking.send(new BuganairGliderTogglePayload(BuganairGliderClientState.isGliding()));
-//            }
-//            return ActionResult.SUCCESS;
-//        }
-
-    //    return ActionResult.PASS;
-    //}
-
     public static boolean isWearingGlider(PlayerEntity player) {
         return player.getEquippedStack(EquipmentSlot.CHEST)
-                .isOf(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM);
+                .isOf(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM) && player.getEquippedStack(EquipmentSlot.CHEST).getDamage() < player.getEquippedStack(EquipmentSlot.CHEST).getMaxDamage()-1;
     }
 
     @Override

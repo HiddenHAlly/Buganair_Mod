@@ -1,0 +1,45 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "long_distance_sniper_kill": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "distance": {
+                "absolute": {
+                  "min": 75
+                }
+              }
+            }
+          }
+        ],
+        "damage": {
+          "type": {
+            "source_entity": {
+              "type": "minecraft:player"
+            }
+          },
+          "item": {
+            "items": [
+              "buganair:buganair_sniper"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "long_distance_sniper_kill"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "buganair:buganair_sniper"
+    ]
+  }
+}

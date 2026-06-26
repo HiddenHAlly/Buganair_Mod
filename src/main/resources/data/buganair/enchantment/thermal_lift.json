@@ -1,0 +1,10 @@
+{
+  "description": { "translate": "enchantment.buganair.thermal_lift" },
+  "max_level": 2,
+  "min_cost": { "base": 25, "per_level_above_first": 15 },
+  "max_cost": { "base": 75, "per_level_above_first": 15 },
+  "anvil_cost": 2,
+  "slots": [ "armor" ],
+  "supported_items": "buganair:buganair_hang_glider",
+  "weight": 2
+}

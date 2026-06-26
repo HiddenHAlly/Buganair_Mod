@@ -1,0 +1,37 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:spyglass"
+    },
+    "title": {
+      "text": "Is it a bow?"
+    },
+    "description": {
+      "text": "Use the scope of a sniper"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "parent": "buganair:buganair_sniper",
+  "criteria": {
+    "used_sniper_scope": {
+      "trigger": "minecraft:location",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_scores",
+            "entity": "this",
+            "scores": {
+              "scoping": {
+                "min": 1,
+                "max": 1
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

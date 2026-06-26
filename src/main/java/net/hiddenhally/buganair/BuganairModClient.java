@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.hiddenhally.buganair.client.*;
+import net.hiddenhally.buganair.config.BuganairConfig;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.network.*;
 import net.minecraft.client.MinecraftClient;
@@ -171,6 +172,8 @@ public class BuganairModClient implements ClientModInitializer {
                 // Se cambi arma mentre sei in mira, esci automaticamente
                 if (BuganairSniperClientState.isAiming()) {
                     BuganairSniperClientState.setAiming(false);
+                    // Sync to server that we are no longer aiming because we swapped items
+                    ClientPlayNetworking.send(new BuganairSniperScopePayload(false));
                 }
                 return;
             }
@@ -178,18 +181,21 @@ public class BuganairModClient implements ClientModInitializer {
             // Tasto destro (piazzare blocco/usare oggetto) → attiva/disattiva la mira
             while (client.options.useKey.wasPressed()) {
                 BuganairSniperClientState.toggleAiming();
+
+                // THE FIX: Send the new state to the server to update the scoreboard
+                ClientPlayNetworking.send(new BuganairSniperScopePayload(BuganairSniperClientState.isAiming()));
             }
 
             // Tasto sinistro (attacco) → spara, solo se si è in mira
             if (BuganairSniperClientState.isAiming()) {
                 while (client.options.attackKey.wasPressed()) {
                     long now = client.world.getTime();
-                    if (BuganairSniperClientState.canFire(now, BuganairMod.SNIPER_FIRE_COOLDOWN_TICKS)) {
+                    if (BuganairSniperClientState.canFire(now, BuganairConfig.INSTANCE.SNIPER_FIRE_COOLDOWN_TICKS)) {
                         BuganairSniperClientState.markFired(now);
                         ClientPlayNetworking.send(new BuganairSniperFirePayload());
                         client.player.swingHand(Hand.MAIN_HAND);
                         // Inside your firing method:
-                        client.player.getItemCooldownManager().set(BuganairMod.BUGANAIR_SNIPER_ITEM.getDefaultStack(), BuganairMod.SNIPER_FIRE_COOLDOWN_TICKS); // 20 ticks = 1 second cooldown
+                        client.player.getItemCooldownManager().set(BuganairMod.BUGANAIR_SNIPER_ITEM.getDefaultStack(), BuganairConfig.INSTANCE.SNIPER_FIRE_COOLDOWN_TICKS); // 20 ticks = 1 second cooldown
                     }
                 }
             }
@@ -232,11 +238,11 @@ public class BuganairModClient implements ClientModInitializer {
 
             if (BuganairGliderClientState.isGliding() && (client.player.isOnGround() || !holdingGlider)) {
                 BuganairGliderClientState.setGliding(false);
-                ClientPlayNetworking.send(new net.hiddenhally.buganair.network.BuganairGliderTogglePayload(false));
+                ClientPlayNetworking.send(new BuganairGliderTogglePayload(false));
             }
         });
 
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
 
             if (BuganairGliderClientState.isGliding()) {
@@ -244,8 +250,12 @@ public class BuganairModClient implements ClientModInitializer {
                 if (client.player.isOnGround()) {
                     BuganairGliderClientState.setGliding(false);
                     ClientPlayNetworking.send(new BuganairGliderOrientationPayload(0, 0, 0));
+                    // THE FIX: Send the new state to the server to update the scoreboard
+                    ClientPlayNetworking.send(new BuganairGliderPayload(false));
                     return;
                 }
+                // THE FIX: Send the new state to the server to update the scoreboard
+                ClientPlayNetworking.send(new BuganairGliderPayload(true));
 
                 // Gather keyboard strafe keys for A/D yaw maneuvers
                 boolean strafeLeft  = client.options.leftKey.isPressed();
@@ -265,6 +275,8 @@ public class BuganairModClient implements ClientModInitializer {
                         BuganairGliderClientState.getYaw(),
                         BuganairGliderClientState.getRoll()
                 ));
+            } else {
+                ClientPlayNetworking.send(new BuganairGliderPayload(false));
             }
         });
 

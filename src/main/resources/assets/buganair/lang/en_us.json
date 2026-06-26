@@ -49,5 +49,10 @@
 
   "item.buganair.buganair_ore_radar": "Buganair Ore Radar",
   "item.buganair.buganair_ore_radar.tooltip_1": "Right-click to send out a ping.",
-  "item.buganair.buganair_ore_radar.tooltip_2": "Reveals surrounding ores temporarily."
+  "item.buganair.buganair_ore_radar.tooltip_2": "Reveals surrounding ores temporarily.",
+
+  "enchantment.buganair.wind_rider": "Wind Rider",
+  "enchantment.buganair.aerodynamic": "Aerodynamic",
+  "enchantment.buganair.thermal_lift": "Thermal Lift",
+  "enchantment.buganair.lightweight": "lightweight"
 }

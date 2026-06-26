@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:mending",
+    "minecraft:feather_falling",
+    "minecraft:projectile_protection",
+    "buganair:wind_rider",
+    "buganair:aerodynamic",
+    "buganair:thermal_lift",
+    "buganair:lightweight"
+  ]
+}

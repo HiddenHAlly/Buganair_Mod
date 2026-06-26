@@ -1,1 +1,6 @@
-{ "model": { "type": "minecraft:model", "model": "buganair:item/buganair_sniper" } }
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "buganair:item/buganair_sniper"
+  }
+}

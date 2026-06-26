@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "buganair:wind_rider",
+    "buganair:aerodynamic",
+    "buganair:thermal_lift",
+    "buganair:lightweight"
+  ]
+}

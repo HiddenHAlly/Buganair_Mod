@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "#L#",
+    "/E/",
+    "#M#"
+  ],
+  "key": {
+    "#": "minecraft:phantom_membrane",
+    "/": "minecraft:breeze_rod",
+    "E": "minecraft:elytra",
+    "L": "#minecraft:leaves",
+    "M": "buganair:buganair_recipe_map"
+  },
+  "group": "hang_glider",
+  "result": {
+    "id": "buganair:buganair_hang_glider"
+  }
+}

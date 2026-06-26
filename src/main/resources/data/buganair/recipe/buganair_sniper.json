@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    ".S/",
+    "###",
+    "RML"
+  ],
+  "key": {
+    ".": "minecraft:gunpowder",
+    "S": "minecraft:spyglass",
+    "/": "minecraft:breeze_rod",
+    "#": "minecraft:netherite_block",
+    "R": "minecraft:redstone_block",
+    "L": "#minecraft:leaves",
+    "M": "buganair:buganair_recipe_map"
+  },
+  "group": "sniper",
+  "result": {
+    "id": "buganair:buganair_sniper"
+  }
+}

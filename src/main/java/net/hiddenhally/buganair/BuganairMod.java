@@ -1,27 +1,37 @@
 package net.hiddenhally.buganair;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
+import net.hiddenhally.buganair.config.BuganairConfig;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.item.BuganairBoatItem;
 import net.hiddenhally.buganair.network.*;
 import net.hiddenhally.buganair.screen.BuganairBoatScreenHandler;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.EquippableComponent;
+import net.minecraft.component.type.RepairableComponent;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
+import net.minecraft.scoreboard.ScoreAccess;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.ScoreboardCriterion;
+import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -38,6 +48,7 @@ import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.Vec3d;
 import net.hiddenhally.buganair.item.BuganairHangGliderItem;
@@ -51,6 +62,12 @@ import java.util.UUID;
 import static net.hiddenhally.buganair.Buganair.MOD_ID;
 
 public class BuganairMod implements ModInitializer {
+    //import net.minecraft.enchantment.Enchantment;
+    // Add this near your other RegistryKeys
+    public static final RegistryKey<Enchantment> WIND_RIDER = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "wind_rider"));
+    public static final RegistryKey<Enchantment> AERODYNAMIC = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "aerodynamic"));
+    public static final RegistryKey<Enchantment> THERMAL_LIFT = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "thermal_lift"));
+    public static final RegistryKey<Enchantment> LIGHTWEIGHT = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "lightweight"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_ACACIA_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_acacia_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_BAMBOO_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_bamboo_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_BIRCH_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_birch_boat"));
@@ -62,10 +79,7 @@ public class BuganairMod implements ModInitializer {
     private static final RegistryKey<EntityType<?>> BUGANAIR_PALE_OAK_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_pale_oak_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_SPRUCE_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_spruce_boat"));
 
-    // ── Sniper: costanti regolabili ──────────────────────────────────────────
-    public static final double SNIPER_ARROW_SPEED = 20.0D;     // blocchi/tick
-    public static final float SNIPER_ARROW_DAMAGE = 8.0F;
-    public static final int SNIPER_FIRE_COOLDOWN_TICKS = 15;  // 0.75s tra un colpo e l'altro
+
 
     // Cooldown server-side, indipendente da eventuali API che cambiano tra versioni
     private static final Map<UUID, Long> SNIPER_LAST_FIRE_TICK = new HashMap<>();
@@ -76,6 +90,8 @@ public class BuganairMod implements ModInitializer {
             new BuganairSniperItem(
                     new Item.Settings()
                             .maxCount(1)
+                            // Sets the text color to Epic (Purple)
+                            .component(DataComponentTypes.RARITY, Rarity.EPIC)
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_sniper")))
             )
     );
@@ -88,12 +104,25 @@ public class BuganairMod implements ModInitializer {
             new BuganairHangGliderItem(
                     new Item.Settings()
                             .maxCount(1)
+                            .maxDamage(432*2) // Defines the durability pool
+                            .enchantable(100) // <-- ADD THIS LINE
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_hang_glider")))
+                            // Sets the text color to Epic (Purple)
+                            .component(DataComponentTypes.RARITY, Rarity.EPIC)
+
+                            // 1. Enables flight & automatically grants the "don't break at 0 durability" protection
                             .component(DataComponentTypes.GLIDER, Unit.INSTANCE)
+
+                            // 2. Defines what item fixes it in an anvil natively
+                            .component(
+                                    DataComponentTypes.REPAIRABLE,
+                                    new RepairableComponent(RegistryEntryList.of(Items.PHANTOM_MEMBRANE.getRegistryEntry()))
+                            )
+
+                            // 3. Links your custom 3D model asset
                             .component(
                                     DataComponentTypes.EQUIPPABLE,
                                     EquippableComponent.builder(EquipmentSlot.CHEST)
-                                            // Fixed: Swapped to EquipmentAssetKeys.REGISTRY_KEY
                                             .model(RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, Identifier.of(MOD_ID, "buganair_hang_glider")))
                                             .build()
                             )
@@ -105,7 +134,10 @@ public class BuganairMod implements ModInitializer {
             Registries.ITEM,
             Identifier.of(MOD_ID, "buganair_ore_radar"),
             new net.hiddenhally.buganair.item.BuganairOreRadarItem(
-                    new Item.Settings().maxCount(1).registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_ore_radar")))
+                    new Item.Settings().
+                            maxCount(1)// Sets the text color to Epic (Purple)
+                            .component(DataComponentTypes.RARITY, Rarity.EPIC)
+                            .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_ore_radar")))
             )
     );
 
@@ -119,6 +151,8 @@ public class BuganairMod implements ModInitializer {
             new net.hiddenhally.buganair.item.BuganairRecipeMapItem(
                     new Item.Settings()
                             .maxCount(1)
+                            // Sets the text color to Epic (Purple)
+                            .component(DataComponentTypes.RARITY, Rarity.EPIC)
                             .registryKey(RegistryKey.of(
                                     RegistryKeys.ITEM,
                                     Identifier.of(MOD_ID, "buganair_recipe_map")))
@@ -166,7 +200,10 @@ public class BuganairMod implements ModInitializer {
         return Registry.register(
                 Registries.ITEM,
                 key,
-                new BuganairBoatItem(woodName, new Item.Settings().maxCount(1).registryKey(key))
+                new BuganairBoatItem(woodName, new Item.Settings()
+                        .maxCount(1)// Sets the text color to Epic (Purple)
+                        .component(DataComponentTypes.RARITY, Rarity.RARE)
+                        .registryKey(key))
         );
     }
 
@@ -215,6 +252,51 @@ public class BuganairMod implements ModInitializer {
     @Override
     public void onInitialize() {
 
+        // Run this inside your main onInitialize() method
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            var scoreboard = server.getScoreboard();
+            if (scoreboard.getNullableObjective("scoping") == null) {
+                scoreboard.addObjective(
+                        "scoping",
+                        ScoreboardCriterion.DUMMY,
+                        Text.literal("Is Scoping"),
+                        ScoreboardCriterion.RenderType.INTEGER,
+                        true,
+                        null
+                );
+            }
+        });
+
+        // Run this inside your main onInitialize() method
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            var scoreboard = server.getScoreboard();
+            if (scoreboard.getNullableObjective("using_hang_glider") == null) {
+                scoreboard.addObjective(
+                        "using_hang_glider",
+                        ScoreboardCriterion.DUMMY,
+                        Text.literal("Is Using Hang Glider"),
+                        ScoreboardCriterion.RenderType.INTEGER,
+                        true,
+                        null
+                );
+            }
+        });
+
+        // Run this inside your main onInitialize() method
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            var scoreboard = server.getScoreboard();
+            if (scoreboard.getNullableObjective("using_ore_radar") == null) {
+                scoreboard.addObjective(
+                        "using_ore_radar",
+                        ScoreboardCriterion.DUMMY,
+                        Text.literal("Is Using Ore Radar"),
+                        ScoreboardCriterion.RenderType.INTEGER,
+                        true,
+                        null
+                );
+            }
+        });
+
         // 2. Load Config first
         net.hiddenhally.buganair.config.BuganairConfig.load();
 
@@ -223,6 +305,11 @@ public class BuganairMod implements ModInitializer {
 
         PayloadTypeRegistry.playC2S().register(BuganairBoatInputPayload.ID, BuganairBoatInputPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairSniperFirePayload.ID, BuganairSniperFirePayload.CODEC);
+
+        PayloadTypeRegistry.playC2S().register(BuganairSniperScopePayload.ID, BuganairSniperScopePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BuganairGliderPayload.ID, BuganairGliderPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BuganairOreRadarPayload.ID, BuganairOreRadarPayload.CODEC);
+
         PayloadTypeRegistry.playC2S().register(BuganairGliderTogglePayload.ID, BuganairGliderTogglePayload.CODEC);
         // Register the custom payload channel
         PayloadTypeRegistry.playC2S().register(BuganairGliderOrientationPayload.ID, BuganairGliderOrientationPayload.CODEC);
@@ -241,7 +328,7 @@ public class BuganairMod implements ModInitializer {
 
             long now = world.getTime();
             long last = SNIPER_LAST_FIRE_TICK.getOrDefault(player.getUuid(), 0L);
-            if (now - last < SNIPER_FIRE_COOLDOWN_TICKS) {
+            if (now - last < BuganairConfig.INSTANCE.SNIPER_FIRE_COOLDOWN_TICKS) {
                 return; // ancora in cooldown, ignora il colpo
             }
             SNIPER_LAST_FIRE_TICK.put(player.getUuid(), now);
@@ -253,13 +340,67 @@ public class BuganairMod implements ModInitializer {
             // new ArrowEntity(world, player.getEyePos().x, player.getEyePos().y, player.getEyePos().z, new ItemStack(Items.ARROW))
             ArrowEntity arrow = new ArrowEntity(world, player, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
             arrow.setNoGravity(true);
-            arrow.setVelocity(direction.multiply(SNIPER_ARROW_SPEED));
-            arrow.setDamage(SNIPER_ARROW_DAMAGE);
+            arrow.setVelocity(direction.multiply(BuganairConfig.INSTANCE.SNIPER_ARROW_SPEED));
+            arrow.setDamage(BuganairConfig.INSTANCE.SNIPER_ARROW_DAMAGE);
 
             world.spawnEntity(arrow);
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
                     SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 1.0F, 1.0F);
         }));
+
+        ServerPlayNetworking.registerGlobalReceiver(BuganairSniperScopePayload.ID, (payload, context) -> {
+            // Ensure processing happens safely on the main server thread
+            context.server().execute(() -> {
+                var player = context.player();
+                var server = context.server();
+                Scoreboard scoreboard = server.getScoreboard();
+                ScoreboardObjective objective = scoreboard.getNullableObjective("scoping");
+
+                if (objective != null) {
+                    // In modern versions, getOrCreateScore returns a ScoreAccess controller interface
+                    ScoreAccess scoreAccess = scoreboard.getOrCreateScore(player, objective);
+
+                    // Updates the integer value directly on the scoreboard channel
+                    scoreAccess.setScore(payload.isAiming() ? 1 : 0);
+                }
+            });
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(BuganairGliderPayload.ID, (payload, context) -> {
+            // Ensure processing happens safely on the main server thread
+            context.server().execute(() -> {
+                var player = context.player();
+                var server = context.server();
+                Scoreboard scoreboard = server.getScoreboard();
+                ScoreboardObjective objective = scoreboard.getNullableObjective("using_hang_glider");
+
+                if (objective != null) {
+                    // In modern versions, getOrCreateScore returns a ScoreAccess controller interface
+                    ScoreAccess scoreAccess = scoreboard.getOrCreateScore(player, objective);
+
+                    // Updates the integer value directly on the scoreboard channel
+                    scoreAccess.setScore(payload.isGliding() ? 1 : 0);
+                }
+            });
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(BuganairOreRadarPayload.ID, (payload, context) -> {
+            // Ensure processing happens safely on the main server thread
+            context.server().execute(() -> {
+                var player = context.player();
+                var server = context.server();
+                Scoreboard scoreboard = server.getScoreboard();
+                ScoreboardObjective objective = scoreboard.getNullableObjective("using_ore_radar");
+
+                if (objective != null) {
+                    // In modern versions, getOrCreateScore returns a ScoreAccess controller interface
+                    ScoreAccess scoreAccess = scoreboard.getOrCreateScore(player, objective);
+
+                    // Updates the integer value directly on the scoreboard channel
+                    scoreAccess.setScore(payload.isSearching() ? 1 : 0);
+                }
+            });
+        });
 
         // Handle the packet when received from a client
         ServerPlayNetworking.registerGlobalReceiver(BuganairGliderTogglePayload.ID, (payload, context) -> {

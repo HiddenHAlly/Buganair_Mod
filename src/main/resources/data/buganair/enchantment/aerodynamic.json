@@ -1,0 +1,10 @@
+{
+  "description": { "translate": "enchantment.buganair.aerodynamic" },
+  "max_level": 3,
+  "min_cost": { "base": 20, "per_level_above_first": 10 },
+  "max_cost": { "base": 70, "per_level_above_first": 10 },
+  "anvil_cost": 1,
+  "slots": [ "armor" ],
+  "supported_items": "buganair:buganair_hang_glider",
+  "weight": 1
+}

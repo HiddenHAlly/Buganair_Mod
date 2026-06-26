@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "id": "buganair:buganair_sniper"
+    },
+    "title": {
+      "text": "Where did this come from?"
+    },
+    "description": {
+      "text": "Buy the battle pass"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "parent": "minecraft:story/root",
+  "criteria": {
+    "has_buganair_sniper": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "buganair:buganair_sniper"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

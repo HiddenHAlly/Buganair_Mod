@@ -1,9 +1,12 @@
 package net.hiddenhally.buganair.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.hiddenhally.buganair.Buganair;
 import net.hiddenhally.buganair.config.BuganairConfig;
+import net.hiddenhally.buganair.network.BuganairGliderPayload;
+import net.hiddenhally.buganair.network.BuganairOreRadarPayload;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -34,6 +37,8 @@ public class BuganairRadarClientState {
     private static boolean isActive = false;
 
     public static void startRadar(BlockPos center) {
+        // THE FIX: Send the new state to the server to update the scoreboard
+        ClientPlayNetworking.send(new BuganairOreRadarPayload(true));
         radarCenter = center;
         radarStartTime = System.currentTimeMillis();
         isActive = true;
@@ -212,6 +217,10 @@ public class BuganairRadarClientState {
             }
 
             vertexConsumers.draw();
+
+            if (progress>=1) {
+                ClientPlayNetworking.send(new BuganairOreRadarPayload(false));
+            }
         });
     }
 

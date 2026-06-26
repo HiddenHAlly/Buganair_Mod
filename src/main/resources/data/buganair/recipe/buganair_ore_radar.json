@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LI#",
+    "IC.",
+    "#MR"
+  ],
+  "key": {
+    "L": "minecraft:lime_stained_glass",
+    "I": "minecraft:iron_bars",
+    "#": "minecraft:iron_block",
+    "C": "minecraft:calibrated_sculk_sensor",
+    ".": "minecraft:redstone_lamp",
+    "R": "minecraft:redstone_block",
+    "M": "buganair:buganair_recipe_map"
+  },
+  "group": "ore_radar",
+  "result": {
+    "id": "buganair:buganair_ore_radar"
+  }
+}

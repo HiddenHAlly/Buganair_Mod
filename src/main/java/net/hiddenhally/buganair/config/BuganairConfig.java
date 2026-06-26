@@ -14,12 +14,18 @@ public class BuganairConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "buganair_config.json");
 
+    // ── Sniper: costanti regolabili ──────────────────────────────────────────
+    public double SNIPER_ARROW_SPEED = 20.0D;     // blocchi/tick
+    public float SNIPER_ARROW_DAMAGE = 3.0F;
+    public int SNIPER_FIRE_COOLDOWN_TICKS = 15;  // 0.75s tra un colpo e l'altro
+
     // Default configuration values
     public int radarRadius = 30;
     public int radarDurationSeconds = 30;
     public int radarCooldownSeconds = 10;
     public float radarOutlineSize = 2.0f;
     public float outlineSize = 1.0f;
+    public float thermalLiftBoost = 0.7f; // ~7 blocks/sec di salita massima, sensazione morbida
 
     // Format is ARGB: Alpha (Opacity), Red, Green, Blue
     public int outlineColor = 0xFFFF00FF; // Solid Cyan

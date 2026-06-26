@@ -1,0 +1,37 @@
+{
+  "display": {
+    "icon": {
+      "id": "buganair:buganair_ore_radar"
+    },
+    "title": {
+      "text": "CHEATER!"
+    },
+    "description": {
+      "text": "Seriously? X-Ray?"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "parent": "minecraft:story/root",
+  "criteria": {
+  "used_ore_radar": {
+    "trigger": "minecraft:location",
+    "conditions": {
+      "player": [
+        {
+          "condition": "minecraft:entity_scores",
+          "entity": "this",
+          "scores": {
+            "using_ore_radar": {
+              "min": 1,
+              "max": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+}
