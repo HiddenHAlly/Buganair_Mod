@@ -139,7 +139,7 @@ public abstract class BuganairGliderPhysicsMixin {
                 var blockState = player.getEntityWorld().getBlockState(checkPos);
                 if (blockState.isIn(BlockTags.CAMPFIRES)
                         || blockState.isOf(Blocks.MAGMA_BLOCK)
-                        || blockState.isOf(Blocks.FIRE)
+                        || blockState.isIn(BlockTags.FIRE)
                         || blockState.isOf(Blocks.LAVA)) {
                     hasHeat = true;
                     break;
