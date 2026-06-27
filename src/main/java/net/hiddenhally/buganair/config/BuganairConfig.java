@@ -32,6 +32,8 @@ public class BuganairConfig {
     public float entityRadarOutlineSize = 2.0f;
     public int entityOutlineColor = 0xFF00FF00; // Solid Cyan
     public int entityBubbleColor = 0x4400FF00;  // 25% Transparent Cyan
+    public int entityEnemyOutlineColor = 0xFFFF0000; // Solid Cyan
+    public int entityEnemyBubbleColor = 0x44FF0000;  // 25% Transparent Cyan
 
     // Default configuration values
     public int radarRadius = 30;

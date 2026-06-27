@@ -1,5 +1,10 @@
 package net.hiddenhally.buganair.client;
 
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.hiddenhally.buganair.config.BuganairConfig;
@@ -8,26 +13,54 @@ import net.hiddenhally.buganair.network.BuganairScoutingFlarePayload;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.*;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShapes;
 import org.joml.Matrix4f;
 
 import static net.hiddenhally.buganair.client.BuganairRadarClientState.drawFilledCube;
+import static net.minecraft.client.gl.RenderPipelines.*;
 
 public class BuganairScoutingFlareClientState {
 
     private static BlockPos radarCenter = null;
     private static long entityRadarStartTimer;
     private static boolean isActive = false;
+    private static boolean enemy = false;
+    private static int outlineColor;
+    private static int bubbleColor;
 
-    public static void startRadar(BlockPos center) {
+    // 1. Grab the pipeline from the ShaderManager using your Identifier
+    private static final RenderPipeline boxShaderManager = RenderPipelines.register(
+            RenderPipeline.builder(RenderPipeline.builder(TRANSFORMS_AND_PROJECTION_SNIPPET)
+                    .withVertexShader("core/position_color")
+                    .withFragmentShader("core/position_color")
+                    .withBlend(BlendFunction.TRANSLUCENT)
+                    .withDepthWrite(false)
+                    .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.QUADS)
+                    .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                    .buildSnippet()).withLocation("pipeline/debug_filled_box").build());
+
+    // 1. Grab the pipeline from the ShaderManager using your Identifier
+    private static final RenderPipeline outlineBoxShaderManager = RenderPipelines.register(RenderPipeline.builder(RenderPipeline.builder(TRANSFORMS_PROJECTION_FOG_SNIPPET, GLOBALS_SNIPPET)
+            .withVertexShader("core/rendertype_lines")
+            .withFragmentShader("core/rendertype_lines")
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withCull(false)
+            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.DrawMode.DEBUG_LINES)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .buildSnippet()).withLocation("pipeline/lines_always").build());
+
+    public static void startRadar(BlockPos center, boolean enemy) {
         // THE FIX: Send the new state to the server to update the scoreboard
         ClientPlayNetworking.send(new BuganairScoutingFlarePayload(true));
         radarCenter = center;
         entityRadarStartTimer = System.currentTimeMillis();
         isActive = true;
         radarCenter = center;
+        outlineColor = enemy ? BuganairConfig.INSTANCE.entityEnemyOutlineColor : BuganairConfig.INSTANCE.entityOutlineColor;
+        bubbleColor = enemy ? BuganairConfig.INSTANCE.entityEnemyBubbleColor : BuganairConfig.INSTANCE.entityBubbleColor;
     }
 
     public static void registerRenderer() {
@@ -47,13 +80,13 @@ public class BuganairScoutingFlareClientState {
             VertexConsumerProvider.Immediate vertexConsumers = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
 
             // Extract Colors
-            int outlineColor = BuganairConfig.INSTANCE.entityOutlineColor;
+
             float oA = ((outlineColor >> 24) & 0xFF) / 255f;
             float oR = ((outlineColor >> 16) & 0xFF) / 255f;
             float oG = ((outlineColor >> 8) & 0xFF) / 255f;
             float oB = (outlineColor & 0xFF) / 255f;
 
-            int bubbleColor = BuganairConfig.INSTANCE.entityBubbleColor;
+
             float bA = ((bubbleColor >> 24) & 0xFF) / 255f;
             float bR = ((bubbleColor >> 16) & 0xFF) / 255f;
             float bG = ((bubbleColor >> 8) & 0xFF) / 255f;
@@ -81,7 +114,11 @@ public class BuganairScoutingFlareClientState {
 
                 VertexConsumer fillBuffer =
                         vertexConsumers.getBuffer(RenderLayer.of(
-                                "debug_filled_box", RenderSetup.builder(RenderPipelines.DEBUG_FILLED_BOX).translucent().layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).outputTarget(OutputTarget.OUTLINE_TARGET).build()
+                                "debug_filled_box", RenderSetup.builder(boxShaderManager)
+                                        .translucent()
+                                        .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+                                        .outputTarget(OutputTarget.MAIN_TARGET)
+                                        .build()
                         ));
 
                 drawFilledCube(
@@ -113,15 +150,49 @@ public class BuganairScoutingFlareClientState {
 //                        2.0f
 //                );
 
-                VertexConsumer outlineBuffer =
-                        vertexConsumers.getBuffer(RenderLayer.of(
-                                "lines_always",
-                                RenderSetup.builder(RenderPipelines.LINES_TRANSLUCENT)
-                                        .layeringTransform(LayeringTransform.NO_LAYERING)
-                                        .outputTarget(OutputTarget.MAIN_TARGET)//.useOverlay()
-                                        //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
-                                        .build()
-                        ));
+                // 1. Flush any deferred rendering up to this point so your lines don't get batched incorrectly
+                vertexConsumers.draw();
+
+//                // 2. Manually override the rendering states
+//                RenderSystem.disableDepthTest();
+//                RenderSystem.enableBlend();
+//                RenderSystem.defaultBlendFunc();
+//                RenderSystem.setShader(GameRenderer::getPositionColorNormalProgram);
+
+                // 3. Set up the Tessellator for immediate drawing
+                // (VertexRendering.drawOutline requires POSITION_COLOR_NORMAL)
+                // Tessellator tessellator = Tessellator.getInstance();
+                // BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
+
+//                VertexConsumer outlineBuffer =
+//                        vertexConsumers.getBuffer(RenderLayer.of(
+//                                "lines_always",
+//                                RenderSetup.builder(RenderPipelines.LINES_TRANSLUCENT)
+//                                        //.layeringTransform(LayeringTransform.NO_LAYERING)
+//                                        .outputTarget(OutputTarget.OUTLINE_TARGET)//.useOverlay()
+//                                        //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
+//                                        .build()
+//                        ));
+
+                // 1. Grab the pipeline from the ShaderManager using your Identifier
+//                var shaderManager = RenderPipelines.register(RenderPipeline.builder(RenderPipeline.builder(TRANSFORMS_PROJECTION_FOG_SNIPPET, GLOBALS_SNIPPET)
+//                        .withVertexShader("core/rendertype_lines")
+//                        .withFragmentShader("core/rendertype_lines")
+//                        .withBlend(BlendFunction.TRANSLUCENT)
+//                        .withCull(false)
+//                        .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.DrawMode.DEBUG_LINES)
+//                        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+//                        .buildSnippet()).withLocation("pipeline/lines_always").build());
+                //var customPipeline = shaderManager;//Identifier.of("buganair", "lines_always"));
+
+                // 2. Feed the compiled pipeline into the RenderSetup builder
+                VertexConsumer outlineBuffer = vertexConsumers.getBuffer(RenderLayer.of(
+                        "lines_always",
+                        RenderSetup.builder(outlineBoxShaderManager)
+                                .outputTarget(OutputTarget.MAIN_TARGET) // Back to main target, no glowing artifacts!
+                                .layeringTransform(LayeringTransform.NO_LAYERING)
+                                .build()
+                ));
 
                 // Convert back to an integer scale (0 - 255)
                 int alphaInt = (int) (255-progress * 255);
@@ -145,6 +216,11 @@ public class BuganairScoutingFlareClientState {
                 );
                 //drawBoxLines(matrix, lineBuffer, cx - r, cy - r, cz - r, cx + r, cy + r, cz + r, bR, bG, bB, bA * (1.0f - progress));
             }
+
+            // 4. Draw immediately to the screen using the global program.drawWithGlobalProgram(bufferBuilder.end());
+
+// 5.       CRITICAL: Re-enable depth testing immediately so you don't break the rest of Minecraft's rendering!
+            //RenderSystem.enableDepthTest();
 
             vertexConsumers.draw();
 

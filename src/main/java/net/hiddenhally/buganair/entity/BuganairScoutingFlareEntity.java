@@ -11,6 +11,7 @@ import net.hiddenhally.buganair.network.BuganairScoutingFlareSyncPayload;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.*;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -30,9 +31,12 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.core.jmx.Server;
 import org.joml.Matrix4f;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 import static net.hiddenhally.buganair.client.BuganairRadarClientState.drawFilledCube;
@@ -47,7 +51,7 @@ public class BuganairScoutingFlareEntity extends ThrownItemEntity {
 
     // Accept ItemStack here
     public BuganairScoutingFlareEntity(World world, LivingEntity owner) {
-        super(BuganairMod.SCOUTING_FLARE_ENTITY_TYPE, owner, world, new ItemStack(BuganairMod.BUGANAIR_SCOUTING_FLARE_ITEM));
+        super(BuganairMod.BUGANAIR_SCOUTING_FLARE_ENTITY_TYPE, owner, world, new ItemStack(BuganairMod.BUGANAIR_SCOUTING_FLARE_ITEM));
     }
 
     @Override
@@ -152,9 +156,6 @@ public class BuganairScoutingFlareEntity extends ThrownItemEntity {
             //}
 
 
-
-
-
             // Suono dell'esplosione del razzo radar
             this.getEntityWorld().playSound(
                     null, this.getX(), this.getY(), this.getZ(),
@@ -162,10 +163,18 @@ public class BuganairScoutingFlareEntity extends ThrownItemEntity {
                     10.0f, 1.0f
             );
 
-            this.discard(); // Rimuove l'entità dal mondo
+            // 2. Find all server players who have this entity loaded in their render distance
+            // (Must be done BEFORE calling this.discard())
+            var trackingPlayers = net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(this);
 
-            // Notify the client to start the radar visual effect
-            ServerPlayNetworking.send((ServerPlayerEntity) this.getOwner(), new BuganairScoutingFlareSyncPayload(this.getBlockPos()));
+            // 3. Loop through those players and send them the visual sync packet
+            for (ServerPlayerEntity player : trackingPlayers) {
+                ServerPlayNetworking.send(player, new BuganairScoutingFlareSyncPayload(this.getBlockPos(), this.getOwner() == null || this.getOwner() != player));
+            }
+
+            // 4. CRITICAL: Now safely remove the entity from the world
+            this.discard();
         }
+
     }
 }

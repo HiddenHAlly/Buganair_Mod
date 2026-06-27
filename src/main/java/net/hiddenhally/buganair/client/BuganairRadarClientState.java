@@ -1,6 +1,10 @@
 package net.hiddenhally.buganair.client;
 
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.hiddenhally.buganair.Buganair;
@@ -28,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static net.minecraft.client.gl.RenderPipelines.*;
+
 public class BuganairRadarClientState {
     private static final TagKey<net.minecraft.block.Block> ORE_TAG = TagKey.of(RegistryKeys.BLOCK, Identifier.of("c", "ores"));
 
@@ -35,6 +41,37 @@ public class BuganairRadarClientState {
     private static BlockPos radarCenter = null;
     private static long radarStartTime = 0;
     private static boolean isActive = false;
+
+    // 1. Grab the pipeline from the ShaderManager using your Identifier
+    private static final RenderPipeline outlineShaderManager = RenderPipelines.register(RenderPipeline.builder(RenderPipeline.builder(TRANSFORMS_PROJECTION_FOG_SNIPPET, GLOBALS_SNIPPET)
+            .withVertexShader("core/rendertype_lines")
+            .withFragmentShader("core/rendertype_lines")
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withCull(true)
+            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.DrawMode.DEBUG_LINES)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .buildSnippet()).withLocation("pipeline/lines_always").build());
+
+    // 1. Grab the pipeline from the ShaderManager using your Identifier
+    private static final RenderPipeline boxShaderManager = RenderPipelines.register(
+            RenderPipeline.builder(RenderPipeline.builder(TRANSFORMS_AND_PROJECTION_SNIPPET)
+                    .withVertexShader("core/position_color")
+                    .withFragmentShader("core/position_color")
+                    .withBlend(BlendFunction.TRANSLUCENT)
+                    .withDepthWrite(false)
+                    .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.QUADS)
+                    .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                    .buildSnippet()).withLocation("pipeline/debug_filled_box").build());
+
+    // 1. Grab the pipeline from the ShaderManager using your Identifier
+    private static final RenderPipeline outlineBoxShaderManager = RenderPipelines.register(RenderPipeline.builder(RenderPipeline.builder(TRANSFORMS_PROJECTION_FOG_SNIPPET, GLOBALS_SNIPPET)
+            .withVertexShader("core/rendertype_lines")
+            .withFragmentShader("core/rendertype_lines")
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withCull(false)
+            .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.DrawMode.DEBUG_LINES)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .buildSnippet()).withLocation("pipeline/lines_always").build());
 
     public static void startRadar(BlockPos center) {
         // THE FIX: Send the new state to the server to update the scoreboard
@@ -120,14 +157,27 @@ public class BuganairRadarClientState {
                 double z = pos.getZ() - camPos.z;
 
                 //drawBoxLines(matrix, lineBuffer, x, y, z, x + 1.0, y + 1.0, z + 1.0, oR, oG, oB, oA);
+//                VertexConsumer outlineBuffer = vertexConsumers.getBuffer(RenderLayer.of(
+//                        "lines_always",
+//                        RenderSetup.builder(RenderPipelines.LINES)
+//                                .layeringTransform(LayeringTransform.NO_LAYERING)
+//                                .outputTarget(OutputTarget.OUTLINE_TARGET)//.useOverlay()
+//                                //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
+//                                .build()
+//                ));
+
+
+                //var customPipeline = shaderManager;//Identifier.of("buganair", "lines_always"));
+
+                // 2. Feed the compiled pipeline into the RenderSetup builder
                 VertexConsumer outlineBuffer = vertexConsumers.getBuffer(RenderLayer.of(
                         "lines_always",
-                        RenderSetup.builder(RenderPipelines.LINES)
+                        RenderSetup.builder(outlineShaderManager)
+                                .outputTarget(OutputTarget.MAIN_TARGET) // Back to main target, no glowing artifacts!
                                 .layeringTransform(LayeringTransform.NO_LAYERING)
-                                .outputTarget(OutputTarget.OUTLINE_TARGET)//.useOverlay()
-                                //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
                                 .build()
                 ));
+
                 VertexRendering.drawOutline(
                         context.matrices(),
                         outlineBuffer,
@@ -156,10 +206,36 @@ public class BuganairRadarClientState {
                 //double r = 2;
                 //float alpha = 1.0f;
 
-                VertexConsumer fillBuffer =
-                        vertexConsumers.getBuffer(RenderLayer.of(
-                                "debug_filled_box", RenderSetup.builder(RenderPipelines.DEBUG_FILLED_BOX).translucent().layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).outputTarget(OutputTarget.OUTLINE_TARGET).build()
-                        ));
+//                VertexConsumer fillBuffer =
+//                        vertexConsumers.getBuffer(RenderLayer.of(
+//                                "debug_filled_box", RenderSetup.builder(RenderPipelines.DEBUG_FILLED_BOX)
+//                                        .translucent()
+//                                        .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+//                                        .outputTarget(OutputTarget.OUTLINE_TARGET)
+//                                        .build()
+//                        ));
+
+
+
+                // 1. Grab the pipeline from the ShaderManager using your Identifier
+//                var shaderManager = RenderPipelines.register(RenderPipeline.builder(RenderPipeline.builder(TRANSFORMS_PROJECTION_FOG_SNIPPET, GLOBALS_SNIPPET)
+//                        .withVertexShader("core/rendertype_lines")
+//                        .withFragmentShader("core/rendertype_lines")
+//                        .withBlend(BlendFunction.TRANSLUCENT)
+//                        .withCull(false)
+//                        .withVertexFormat(VertexFormats.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.DrawMode.DEBUG_LINES)
+//                        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+//                        .buildSnippet()).withLocation("pipeline/lines_always").build());;
+                //var customPipeline = shaderManager;//Identifier.of("buganair", "lines_always"));
+
+                // 2. Feed the compiled pipeline into the RenderSetup builder
+                VertexConsumer fillBuffer = vertexConsumers.getBuffer(RenderLayer.of(
+                        "lines_always",
+                        RenderSetup.builder(boxShaderManager)
+                                .outputTarget(OutputTarget.MAIN_TARGET) // Back to main target, no glowing artifacts!
+                                .layeringTransform(LayeringTransform.NO_LAYERING)
+                                .build()
+                ));
 
                 drawFilledCube(
                         context.matrices().peek().getPositionMatrix(),
@@ -190,15 +266,27 @@ public class BuganairRadarClientState {
 //                        2.0f
 //                );
 
-                VertexConsumer outlineBuffer =
-                        vertexConsumers.getBuffer(RenderLayer.of(
-                                "lines_always",
-                                RenderSetup.builder(RenderPipelines.LINES_TRANSLUCENT)
-                                        .layeringTransform(LayeringTransform.NO_LAYERING)
-                                        .outputTarget(OutputTarget.OUTLINE_TARGET)//.useOverlay()
-                                        //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
-                                        .build()
-                        ));
+//                VertexConsumer outlineBuffer =
+//                        vertexConsumers.getBuffer(RenderLayer.of(
+//                                "lines_always",
+//                                RenderSetup.builder(RenderPipelines.LINES_TRANSLUCENT)
+//                                        .layeringTransform(LayeringTransform.NO_LAYERING)
+//                                        .outputTarget(OutputTarget.OUTLINE_TARGET)//.useOverlay()
+//                                        //.depthTest(DepthTest.ALWAYS) // Tells the pipeline to draw regardless of blocks
+//                                        .build()
+//                        ));
+
+
+                //var customPipeline = shaderManager;//Identifier.of("buganair", "lines_always"));
+
+                // 2. Feed the compiled pipeline into the RenderSetup builder
+                VertexConsumer outlineBuffer = vertexConsumers.getBuffer(RenderLayer.of(
+                        "lines_always",
+                        RenderSetup.builder(outlineBoxShaderManager)
+                                .outputTarget(OutputTarget.MAIN_TARGET) // Back to main target, no glowing artifacts!
+                                .layeringTransform(LayeringTransform.NO_LAYERING)
+                                .build()
+                ));
 
                 // Convert back to an integer scale (0 - 255)
                 int alphaInt = (int) (255-progress * 255);

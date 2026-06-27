@@ -1,20 +1,20 @@
 {
   "display": {
     "icon": {
-      "id": "buganair:buganair_ore_radar"
+      "id": "buganair:buganair_scouting_flare"
     },
     "title": {
-      "text": "CHEATER!"
+      "text": "Wait! Why am I glowing?!"
     },
     "description": {
-      "text": "Seriously? X-Ray?"
+      "text": "Hit something with the Scouting Flare Item"
     },
     "frame": "challenge",
     "show_toast": true,
     "announce_to_chat": true,
     "hidden": true
   },
-  "parent": "buganair:buganair_scouting_flare",
+  "parent": "minecraft:story/root",
   "criteria": {
   "used_ore_radar": {
     "trigger": "minecraft:location",
@@ -24,7 +24,7 @@
           "condition": "minecraft:entity_scores",
           "entity": "this",
           "scores": {
-            "using_ore_radar": {
+            "using_scouting_flare": {
               "min": 1,
               "max": 1
             }

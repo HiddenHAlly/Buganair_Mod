@@ -163,18 +163,19 @@ public class BuganairMod implements ModInitializer {
     // 1. Registrazione dell'Item del Bengala
     public static final Item BUGANAIR_SCOUTING_FLARE_ITEM = Registry.register(
             Registries.ITEM,
-            net.minecraft.util.Identifier.of(MOD_ID, "scouting_flare"),
+            net.minecraft.util.Identifier.of(MOD_ID, "buganair_scouting_flare"),
             new net.hiddenhally.buganair.item.BuganairScoutingFlareItem(
                     new Item.Settings()
                             .maxCount(16) // Stackabile fino a 16 unità
-                            .registryKey(RegistryKey.of(RegistryKeys.ITEM, net.minecraft.util.Identifier.of(MOD_ID, "scouting_flare")))
+                            .component(DataComponentTypes.RARITY, Rarity.RARE)
+                            .registryKey(RegistryKey.of(RegistryKeys.ITEM, net.minecraft.util.Identifier.of(MOD_ID, "buganair_scouting_flare")))
             )
     );
 
     // 2. Registrazione dell'Entità del Bengala
-    public static final EntityType<net.hiddenhally.buganair.entity.BuganairScoutingFlareEntity> SCOUTING_FLARE_ENTITY_TYPE = Registry.register(
+    public static final EntityType<net.hiddenhally.buganair.entity.BuganairScoutingFlareEntity> BUGANAIR_SCOUTING_FLARE_ENTITY_TYPE = Registry.register(
             Registries.ENTITY_TYPE,
-            net.minecraft.util.Identifier.of(MOD_ID, "scouting_flare"),
+            net.minecraft.util.Identifier.of(MOD_ID, "buganair_scouting_flare"),
             EntityType.Builder.<net.hiddenhally.buganair.entity.BuganairScoutingFlareEntity>create(net.hiddenhally.buganair.entity.BuganairScoutingFlareEntity::new, SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f)
                     .maxTrackingRange(4)

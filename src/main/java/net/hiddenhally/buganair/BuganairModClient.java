@@ -49,7 +49,7 @@ public class BuganairModClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(BuganairScoutingFlareSyncPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
-                BuganairScoutingFlareClientState.startRadar(payload.center());
+                BuganairScoutingFlareClientState.startRadar(payload.center(), payload.enemy());
             });
         });
 
@@ -77,7 +77,7 @@ public class BuganairModClient implements ClientModInitializer {
         EntityRendererFactories.register(BuganairMod.BUGANAIR_SPRUCE_BOAT_ENTITY_TYPE, BuganairBoatEntityRenderer::new);
 
         EntityRendererFactories.register(
-                BuganairMod.SCOUTING_FLARE_ENTITY_TYPE,
+                BuganairMod.BUGANAIR_SCOUTING_FLARE_ENTITY_TYPE,
                 net.minecraft.client.render.entity.FlyingItemEntityRenderer::new
         );
         // ==========================================

@@ -1,28 +1,29 @@
 {
-	"required": true,
-	"package": "net.hiddenhally.buganair.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"BuganairGliderPhysicsMixin",
-		"EntityGliderRotationMixin",
-		"ExampleMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	},
-	"client": [
-		"BuganairCameraMixin",
-		"BuganairFovMixin",
-		"BuganairHudVisibilityMixin",
-		"BuganairMouseScrollMixin",
-		"BuganairMouseSensitivityMixin",
-		"BuganairPlayerArmPoseMixin",
-		"HandledScreenMixin",
-		"LocalPlayerGliderMixin",
-		"client.CameraGliderMixin",
-		"client.ClientPlayerGliderTickMixin"
-	]
+  "required": true,
+  "package": "net.hiddenhally.buganair.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BuganairGliderPhysicsMixin",
+    "EntityGliderRotationMixin",
+    "ExampleMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "client": [
+    "BuganairCameraMixin",
+    "BuganairFovMixin",
+    "BuganairHudVisibilityMixin",
+    "BuganairMouseScrollMixin",
+    "BuganairMouseSensitivityMixin",
+    "BuganairPlayerArmPoseMixin",
+    "HandledScreenMixin",
+    "LocalPlayerGliderMixin",
+    "client.CameraGliderMixin",
+    "client.ClientPlayerGliderTickMixin",
+    "client.PlayerEntityModelRotationMixin"
+    ]
 }

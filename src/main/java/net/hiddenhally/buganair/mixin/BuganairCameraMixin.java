@@ -20,6 +20,11 @@ public abstract class BuganairCameraMixin {
     @Shadow private float yaw;
     @Shadow private float pitch;
 
+    // Shadow the positioning methods needed to rewrite third-person tracking
+    @Shadow protected abstract void setPos(double x, double y, double z);
+    @Shadow protected abstract void moveBy(float surge, float heave, float sway);
+    @Shadow protected abstract float clipToSpace(float distance);
+
     private float buganair$lastCameraYaw = 0.0f;
     private float buganair$currentRoll = 0.0f;
     private boolean buganair$wasGliding = false;
@@ -40,20 +45,52 @@ public abstract class BuganairCameraMixin {
             if (yawDelta < -180.0f) yawDelta += 360.0f;
             buganair$lastCameraYaw = this.yaw;
 
-            //float targetRoll = -yawDelta * 3.0f;
-            //targetRoll = MathHelper.clamp(targetRoll, -45.0f, 45.0f);
-            // Usa direttamente il roll calcolato nello stato client!
             float currentRoll = BuganairGliderClientState.getRoll() - yawDelta * 3.0f;
             float targetRoll = MathHelper.clamp(currentRoll, -45.0f, 45.0f);
             buganair$currentRoll = MathHelper.lerp(0.05f, buganair$currentRoll, targetRoll);
 
             // Convert to radians for JOML
-            float yawRad = (float) Math.toRadians(180-this.yaw);
+            float yawRad = (float) Math.toRadians(180 - this.yaw);
             float pitchRad = (float) Math.toRadians(this.pitch);
             float rollRad = (float) Math.toRadians(buganair$currentRoll);
 
-            // FIX: Invert pitchRad here to match Minecraft's unconventional inverted coordinate system matrix
+            // 1. Set the clean forward-facing flight rotation matrix first
             this.rotation.rotationYXZ(yawRad, -pitchRad, rollRad);
+
+            // 2. CRITICAL FIX: Manually calculate camera position using our unconstrained angles
+            if (thirdPerson) {
+                // Determine the base eye position of the player
+                double eyeX = MathHelper.lerp((double)tickProgress, focusedEntity.lastX, focusedEntity.getX());
+                double eyeY = MathHelper.lerp((double)tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
+                double eyeZ = MathHelper.lerp((double)tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+
+                // Reset camera back to player eyes
+                this.setPos(eyeX, eyeY, eyeZ);
+
+                // Move backward relative to our updated 360-degree matrix (accounting for block collisions)
+                double dist = this.clipToSpace(4.0f);
+                this.moveBy((float) -dist, 0.0f, 0.0f);
+            }
+
+            // 3. If in third person FRONT, flip the camera rotation afterward to look back at the player
+            if (inverseView) {
+                // Determine the base eye position of the player
+                double eyeX = MathHelper.lerp((double)tickProgress, focusedEntity.lastX, focusedEntity.getX());
+                double eyeY = MathHelper.lerp((double)tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
+                double eyeZ = MathHelper.lerp((double)tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+
+                // Reset camera back to player eyes
+                this.setPos(eyeX, eyeY, eyeZ);
+
+                // Move backward relative to our updated 360-degree matrix (accounting for block collisions)
+                double dist = this.clipToSpace(4.0f);
+                this.moveBy((float) dist, 0.0f, 0.0f);
+
+                yawRad += (float) Math.PI;
+                pitchRad = -pitchRad;
+                rollRad = -rollRad;
+                this.rotation.rotationYXZ(yawRad, -pitchRad, rollRad);
+            }
         } else {
             if (buganair$wasGliding) {
                 buganair$wasGliding = false;
