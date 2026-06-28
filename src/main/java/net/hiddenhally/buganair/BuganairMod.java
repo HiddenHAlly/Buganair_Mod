@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
 import net.hiddenhally.buganair.config.BuganairConfig;
@@ -96,6 +97,23 @@ public class BuganairMod implements ModInitializer {
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_sniper")))
             )
     );
+
+    // 1. A thread-safe Set to keep track of which players are currently crawling with the sniper
+    private static final java.util.Set<UUID> SNIPER_CRAWLING_PLAYERS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    // 2. The method your Mixin is trying to call
+    public static boolean isSniperCrawling(UUID uuid) {
+        return SNIPER_CRAWLING_PLAYERS.contains(uuid);
+    }
+
+    // 3. A helper method so you can easily add or remove players from this state
+    public static void setSniperCrawling(UUID uuid, boolean isCrawling) {
+        if (isCrawling) {
+            SNIPER_CRAWLING_PLAYERS.add(uuid);
+        } else {
+            SNIPER_CRAWLING_PLAYERS.remove(uuid);
+        }
+    }
 
 
 
@@ -345,6 +363,10 @@ public class BuganairMod implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(BuganairScoutingFlareSyncPayload.ID, BuganairScoutingFlareSyncPayload.CODEC);
 
         PayloadTypeRegistry.playC2S().register(BuganairBoatInputPayload.ID, BuganairBoatInputPayload.CODEC);
+
+        // 1. REGISTER THE PAYLOADS
+        // Add this alongside your existing glider payload registrations:
+        PayloadTypeRegistry.playC2S().register(BuganairSniperCrawlPayload.ID, BuganairSniperCrawlPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BuganairSniperFirePayload.ID, BuganairSniperFirePayload.CODEC);
 
         PayloadTypeRegistry.playC2S().register(BuganairSniperScopePayload.ID, BuganairSniperScopePayload.CODEC);
@@ -364,6 +386,22 @@ public class BuganairMod implements ModInitializer {
             }
         }));
 
+        // 2. REGISTER THE GLOBAL RECEIVER
+        // Add this alongside your ServerPlayNetworking.registerGlobalReceiver blocks:
+        ServerPlayNetworking.registerGlobalReceiver(BuganairSniperCrawlPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                ServerPlayerEntity player = context.player();
+                // Update the server-side state map based on the client's action
+                setSniperCrawling(player.getUuid(), payload.crawling());
+            });
+        });
+
+        // 3. PREVENT MEMORY LEAKS (Clean up when a player leaves the server)
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            UUID playerUuid = handler.getPlayer().getUuid();
+            setSniperCrawling(playerUuid, false);
+        });
+
         ServerPlayNetworking.registerGlobalReceiver(BuganairSniperFirePayload.ID, (payload, context) -> context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
             ServerWorld world = (ServerWorld) player.getEntityWorld();
@@ -375,18 +413,33 @@ public class BuganairMod implements ModInitializer {
             }
             SNIPER_LAST_FIRE_TICK.put(player.getUuid(), now);
 
+            // 1. Calculate the shifted origin using the payload's xOffset
+            Vec3d centerEyePos = player.getEyePos();
+            float yawRadians = (float) Math.toRadians(player.getYaw() + 90.0f);
+
+            // Create the "Right Vector" based on the player's rotation
+            Vec3d rightVector = new Vec3d(-Math.sin(yawRadians), 0, Math.cos(yawRadians));
+            Vec3d peekOffsetVector = rightVector.multiply(payload.xOffset());
+
+            // The exact 3D coordinate where the camera is located
+            Vec3d spawnPos = centerEyePos.add(peekOffsetVector);
+
             Vec3d direction = player.getRotationVector();
 
-            // Costruttore "comodo": imposta automaticamente owner e posizione di spawn
-            // agli occhi di 'player'. Se l'IDE segnala un errore qui, prova invece:
-            // new ArrowEntity(world, player.getEyePos().x, player.getEyePos().y, player.getEyePos().z, new ItemStack(Items.ARROW))
-            ArrowEntity arrow = new ArrowEntity(world, player, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
+            // 2. Use the exact coordinate constructor (x, y, z) instead of passing the PlayerEntity
+            ArrowEntity arrow = new ArrowEntity(world, spawnPos.x, spawnPos.y, spawnPos.z, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
+
+            // CRITICAL: Because we didn't pass 'player' to the constructor, we must manually set the owner!
+            arrow.setOwner(player);
+
             arrow.setNoGravity(true);
             arrow.setVelocity(direction.multiply(BuganairConfig.INSTANCE.SNIPER_ARROW_SPEED));
             arrow.setDamage(BuganairConfig.INSTANCE.SNIPER_ARROW_DAMAGE);
 
             world.spawnEntity(arrow);
-            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+
+            // 3. Play the sound at the shifted spawn position so it sounds accurate in stereo!
+            world.playSound(null, spawnPos.x, spawnPos.y, spawnPos.z,
                     SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 1.0F, 1.0F);
         }));
 

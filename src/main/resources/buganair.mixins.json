@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BuganairGliderPhysicsMixin",
+    "BuganairSniperCrawlMixin",
     "EntityGliderRotationMixin",
     "ExampleMixin"
   ],
@@ -24,6 +25,7 @@
     "LocalPlayerGliderMixin",
     "client.CameraGliderMixin",
     "client.ClientPlayerGliderTickMixin",
+    "client.KeyboardInputMixin",
     "client.PlayerEntityModelRotationMixin"
-    ]
+  ]
 }

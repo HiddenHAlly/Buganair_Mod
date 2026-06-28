@@ -7,7 +7,8 @@
     "client.ClientPlayerGliderTickMixin",
     "LocalPlayerGliderMixin",
     "BuganairCameraMixin",
-    "client.PlayerEntityModelRotationMixin"
+    "client.PlayerEntityModelRotationMixin",
+    "client.KeyboardInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -54,5 +54,9 @@
   "enchantment.buganair.wind_rider": "Wind Rider",
   "enchantment.buganair.aerodynamic": "Aerodynamic",
   "enchantment.buganair.thermal_lift": "Thermal Lift",
-  "enchantment.buganair.lightweight": "lightweight"
+  "enchantment.buganair.lightweight": "lightweight",
+
+  "item.buganair.buganair_scouting_flare": "Buganair Scouting Flare",
+  "item.buganair.buganair_scouting_flare.tooltip_1": "Right-click to throw",
+  "item.buganair.buganair_scouting_flare.tooltip_2": "At landing reveals surrounding entities temporarily."
 }
