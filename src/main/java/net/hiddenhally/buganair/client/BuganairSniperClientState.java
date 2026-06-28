@@ -14,7 +14,6 @@ public final class BuganairSniperClientState {
     private static int zoomLevel    = DEFAULT_ZOOM_LEVEL;
     private static long lastFireTick = -1000;
 
-    public static float pitch        = 0f;
     public static float yaw          = 0f;
     public static float roll         = 0f;
     public static float maxRoll      = 45.0f;
@@ -35,7 +34,7 @@ public final class BuganairSniperClientState {
     // ── Zoom ──────────────────────────────────────────────────────────────────
     public static int  getZoomLevel()            { return zoomLevel; }
     public static void adjustZoom(int delta) {
-        zoomLevel = Math.max(MIN_ZOOM_LEVEL, Math.min(MAX_ZOOM_LEVEL, zoomLevel + delta));
+        zoomLevel = Math.clamp(zoomLevel + delta, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL);
     }
 
     /** Usato dal Mixin del FOV: 1.0 = nessuno zoom, valori più alti = più ingrandimento. */
@@ -50,15 +49,14 @@ public final class BuganairSniperClientState {
     public static void markFired(long currentTick) { lastFireTick = currentTick; }
 
     // ── Getters camera ────────────────────────────────────────────────────────
-    public static float getPitch()   { return pitch; }
     public static float getYaw()     { return yaw; }
     public static float getRoll()    { return roll; }
     public static float getXOffset() { return xOffset; }
 
     /**
-     * Gestisce il lean/roll della camera tramite le frecce ← → .
+     * Gestisce il lean/roll della camera tramite le frecce ← →.
      * Non richiede più Shift: le frecce sono input dedicati allo sniper.
-     *
+     * <p>
      * Chiamato ogni tick client in BuganairModClient quando si tiene lo sniper.
      *
      * @param leftArrow  freccia sinistra premuta (lean a sinistra)

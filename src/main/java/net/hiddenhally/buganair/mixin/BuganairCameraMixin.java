@@ -1,6 +1,5 @@
 package net.hiddenhally.buganair.mixin;
 
-import net.hiddenhally.buganair.Buganair;
 import net.hiddenhally.buganair.BuganairMod;
 import net.hiddenhally.buganair.client.BuganairGliderClientState;
 import net.hiddenhally.buganair.client.BuganairSniperClientState;
@@ -17,6 +16,7 @@ import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -37,21 +37,20 @@ public abstract class BuganairCameraMixin {
     private Vector3f horizontalPlane;
     @Shadow
     private World area;
-    @Shadow
-    private Entity focusedEntity;
+    @Unique
     private float buganair$lastCameraYaw = 0.0f;
+    @Unique
     private float buganair$currentRoll = 0.0f;
+    @Unique
     private boolean buganair$wasGliding = false;
-    private float buganair$currentXOffset = 0.0f;
-    private float safePeekDistance;
-    private Vec3d pos;
 
+    @Unique
     private float clipCameraToSpace(Entity focusedEntity, float distance, float tickProgress, Vec3d direction) {
         // Determine the base eye position of the player
-        double eyeX = MathHelper.lerp((double)tickProgress, focusedEntity.lastX, focusedEntity.getX());
-        double eyeY = MathHelper.lerp((double)tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
-        double eyeZ = MathHelper.lerp((double)tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
-        this.pos = new Vec3d(eyeX, eyeY, eyeZ);
+        double eyeX = MathHelper.lerp(tickProgress, focusedEntity.lastX, focusedEntity.getX());
+        double eyeY = MathHelper.lerp(tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
+        double eyeZ = MathHelper.lerp(tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+        Vec3d pos = new Vec3d(eyeX, eyeY, eyeZ);
 
         // Normalize the input direction to ensure accurate distance tracking
         Vec3d unitDirection = direction.normalize();
@@ -61,7 +60,7 @@ public abstract class BuganairCameraMixin {
             float g = (i & 1) * 2 - 1;
             float h = (i >> 1 & 1) * 2 - 1;
             float j = (i >> 2 & 1) * 2 - 1;
-            Vec3d vec3d = this.pos.add(g * 0.1F, h * 0.1F, j * 0.1F);
+            Vec3d vec3d = pos.add(g * 0.1F, h * 0.1F, j * 0.1F);
 
             // MODIFIED: Project the end point along your custom direction vector
             Vec3d vec3d2 = vec3d.add(unitDirection.multiply(distance));
@@ -71,7 +70,7 @@ public abstract class BuganairCameraMixin {
             ));
 
             if (hitResult.getType() != HitResult.Type.MISS) {
-                float k = (float)hitResult.getPos().squaredDistanceTo(this.pos);
+                float k = (float)hitResult.getPos().squaredDistanceTo(pos);
                 if (k < MathHelper.square(distance)) {
                     distance = MathHelper.sqrt(k);
                 }
@@ -113,9 +112,9 @@ public abstract class BuganairCameraMixin {
             // 2. CRITICAL FIX: Manually calculate camera position using our unconstrained angles
             if (thirdPerson) {
                 // Determine the base eye position of the player
-                double eyeX = MathHelper.lerp((double)tickProgress, focusedEntity.lastX, focusedEntity.getX());
-                double eyeY = MathHelper.lerp((double)tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
-                double eyeZ = MathHelper.lerp((double)tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+                double eyeX = MathHelper.lerp(tickProgress, focusedEntity.lastX, focusedEntity.getX());
+                double eyeY = MathHelper.lerp(tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
+                double eyeZ = MathHelper.lerp(tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
 
                 // Reset camera back to player eyes
                 this.setPos(eyeX, eyeY, eyeZ);
@@ -128,9 +127,9 @@ public abstract class BuganairCameraMixin {
             // 3. If in third person FRONT, flip the camera rotation afterward to look back at the player
             if (inverseView) {
                 // Determine the base eye position of the player
-                double eyeX = MathHelper.lerp((double)tickProgress, focusedEntity.lastX, focusedEntity.getX());
-                double eyeY = MathHelper.lerp((double)tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
-                double eyeZ = MathHelper.lerp((double)tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+                double eyeX = MathHelper.lerp(tickProgress, focusedEntity.lastX, focusedEntity.getX());
+                double eyeY = MathHelper.lerp(tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
+                double eyeZ = MathHelper.lerp(tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
 
                 // Reset camera back to player eyes
                 this.setPos(eyeX, eyeY, eyeZ);
@@ -151,17 +150,7 @@ public abstract class BuganairCameraMixin {
             if (focusedEntity instanceof PlayerEntity && (((PlayerEntity) focusedEntity).getMainHandStack().isOf(BuganairMod.BUGANAIR_SNIPER_ITEM) || ((PlayerEntity) focusedEntity).getOffHandStack().isOf(BuganairMod.BUGANAIR_SNIPER_ITEM))) {
                 this.pitch = focusedEntity.getPitch();
                 this.yaw = focusedEntity.getYaw();
-                this.buganair$currentXOffset = BuganairSniperClientState.getXOffset();
-
-                //if (!buganair$wasGliding) {
-                    buganair$lastCameraYaw = this.yaw;
-                    //buganair$wasGliding = true;
-                //}
-
-                float yawDelta = this.yaw - buganair$lastCameraYaw;
-                if (yawDelta > 180.0f) yawDelta -= 360.0f;
-                if (yawDelta < -180.0f) yawDelta += 360.0f;
-                buganair$lastCameraYaw = this.yaw;
+                float buganair$currentXOffset = BuganairSniperClientState.getXOffset();
 
                 float currentRoll = BuganairSniperClientState.getRoll();
                 float targetRoll = MathHelper.clamp(currentRoll, -45.0f, 45.0f);
@@ -173,9 +162,9 @@ public abstract class BuganairCameraMixin {
                 float rollRad = (float) Math.toRadians(buganair$currentRoll);
 
                 // Determine the base eye position of the player
-                double eyeX = MathHelper.lerp((double)tickProgress, focusedEntity.lastX, focusedEntity.getX());
-                double eyeY = MathHelper.lerp((double)tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
-                double eyeZ = MathHelper.lerp((double)tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+                double eyeX = MathHelper.lerp(tickProgress, focusedEntity.lastX, focusedEntity.getX());
+                double eyeY = MathHelper.lerp(tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
+                double eyeZ = MathHelper.lerp(tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
                 // Reset camera back to player eyes
                 this.setPos(eyeX, eyeY, eyeZ);
 
@@ -188,6 +177,7 @@ public abstract class BuganairCameraMixin {
                 Vec3d leftDirection = rightDirection.negate();
 
 
+                float safePeekDistance;
                 if (buganair$currentXOffset >= 0) {
                     // Check if the peek width clears geometry blocks
                     safePeekDistance = clipCameraToSpace(focusedEntity, Math.abs(BuganairSniperClientState.getXOffset()), tickProgress, rightDirection);
@@ -204,25 +194,25 @@ public abstract class BuganairCameraMixin {
                 // 2. CRITICAL FIX: Manually calculate camera position using our unconstrained angles
                 if (thirdPerson) {
                     // Determine the base eye position of the player
-                    eyeX = MathHelper.lerp((double)tickProgress, focusedEntity.lastX, focusedEntity.getX());
-                    eyeY = MathHelper.lerp((double)tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
-                    eyeZ = MathHelper.lerp((double)tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+                    eyeX = MathHelper.lerp(tickProgress, focusedEntity.lastX, focusedEntity.getX());
+                    eyeY = MathHelper.lerp(tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double)focusedEntity.getStandingEyeHeight();
+                    eyeZ = MathHelper.lerp(tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
 
                     // Reset camera back to player eyes
                     this.setPos(eyeX, eyeY, eyeZ);
 
                     // Move backward relative to our updated 360-degree matrix (accounting for block collisions)
-                    Vec3d forwardDirection = new Vec3d(this.horizontalPlane);
-                    float safeDistance = clipCameraToSpace(focusedEntity, 4.0f, tickProgress, forwardDirection);
-                    this.moveBy((float) -safeDistance, 0.0f, safePeekDistance);
+                    Vec3d backwardDirection = new Vec3d(this.horizontalPlane).negate();
+                    float safeDistance = clipCameraToSpace(focusedEntity, 4.0f, tickProgress, backwardDirection);
+                    this.moveBy(-safeDistance, 0.0f, safePeekDistance);
                 }
 
                 // 3. If in third person FRONT, flip the camera rotation afterward to look back at the player
                 if (inverseView) {
                     // Determine the base eye position of the player
-                    eyeX = MathHelper.lerp((double) tickProgress, focusedEntity.lastX, focusedEntity.getX());
-                    eyeY = MathHelper.lerp((double) tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double) focusedEntity.getStandingEyeHeight();
-                    eyeZ = MathHelper.lerp((double) tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
+                    eyeX = MathHelper.lerp(tickProgress, focusedEntity.lastX, focusedEntity.getX());
+                    eyeY = MathHelper.lerp(tickProgress, focusedEntity.lastY, focusedEntity.getY()) + (double) focusedEntity.getStandingEyeHeight();
+                    eyeZ = MathHelper.lerp(tickProgress, focusedEntity.lastZ, focusedEntity.getZ());
 
                     // Reset camera back to player eyes
                     this.setPos(eyeX, eyeY, eyeZ);
@@ -232,7 +222,7 @@ public abstract class BuganairCameraMixin {
 
                     // Move backward relative to our updated 360-degree matrix (accounting for block collisions)
                     //double dist = this.clipToSpace(4.0f);
-                    this.moveBy((float) safeDistance, 0.0f, safePeekDistance);
+                    this.moveBy(safeDistance, 0.0f, safePeekDistance);
 
                     yawRad += (float) Math.PI;
                     pitchRad = -pitchRad;

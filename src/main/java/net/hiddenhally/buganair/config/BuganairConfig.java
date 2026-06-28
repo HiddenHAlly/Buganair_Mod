@@ -27,7 +27,6 @@ public class BuganairConfig {
 
     public int entityRadarRadius = 30;
     public int entityRadarDurationSeconds = 30;
-    public int entityRadarCooldownSeconds = 5;
     public float entityRadarExpandTime = 4000f;
     public float entityRadarOutlineSize = 2.0f;
     public int entityOutlineColor = 0xFF00FF00; // Solid Cyan

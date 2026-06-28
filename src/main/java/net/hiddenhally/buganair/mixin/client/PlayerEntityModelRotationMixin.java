@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerEntityRenderer.class)
 public class PlayerEntityModelRotationMixin {
 
-    @Inject(method = "setupTransforms", at = @At("TAIL"))
+    @Inject(method = "setupTransforms*", at = @At("TAIL"))
     private void buganair$applyModelLoopAndRoll(PlayerEntityRenderState state, MatrixStack matrices, float baseAngles, float tickProgress, CallbackInfo ci) {
         // Since we are checking your local client's state, grab the local player instance safely
         ClientPlayerEntity localPlayer = MinecraftClient.getInstance().player;

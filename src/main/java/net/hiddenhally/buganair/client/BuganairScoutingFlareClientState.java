@@ -3,21 +3,18 @@ package net.hiddenhally.buganair.client;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.hiddenhally.buganair.config.BuganairConfig;
-import net.hiddenhally.buganair.network.BuganairOreRadarPayload;
 import net.hiddenhally.buganair.network.BuganairScoutingFlarePayload;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.*;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShapes;
-import org.joml.Matrix4f;
+
 
 import static net.hiddenhally.buganair.client.BuganairRadarClientState.drawFilledCube;
 import static net.minecraft.client.gl.RenderPipelines.*;
@@ -27,7 +24,6 @@ public class BuganairScoutingFlareClientState {
     private static BlockPos radarCenter = null;
     private static long entityRadarStartTimer;
     private static boolean isActive = false;
-    private static boolean enemy = false;
     private static int outlineColor;
     private static int bubbleColor;
 
@@ -81,19 +77,11 @@ public class BuganairScoutingFlareClientState {
 
             // Extract Colors
 
-            float oA = ((outlineColor >> 24) & 0xFF) / 255f;
-            float oR = ((outlineColor >> 16) & 0xFF) / 255f;
-            float oG = ((outlineColor >> 8) & 0xFF) / 255f;
-            float oB = (outlineColor & 0xFF) / 255f;
-
-
             float bA = ((bubbleColor >> 24) & 0xFF) / 255f;
             float bR = ((bubbleColor >> 16) & 0xFF) / 255f;
             float bG = ((bubbleColor >> 8) & 0xFF) / 255f;
             float bB = (bubbleColor & 0xFF) / 255f;
 
-            VertexConsumer lineBuffer = vertexConsumers.getBuffer(RenderLayers.lines());
-            Matrix4f matrix = context.matrices().peek().getPositionMatrix();
             MinecraftClient client = MinecraftClient.getInstance();
             assert client.world != null;
 
@@ -108,9 +96,7 @@ public class BuganairScoutingFlareClientState {
                 double cy = radarCenter.getY() + 0.5 - camPos.y;
                 double cz = radarCenter.getZ() + 0.5 - camPos.z;
 
-                //double r = currentRadius;
-                //double r = 2;
-                //float alpha = 1.0f;
+
 
                 VertexConsumer fillBuffer =
                         vertexConsumers.getBuffer(RenderLayer.of(

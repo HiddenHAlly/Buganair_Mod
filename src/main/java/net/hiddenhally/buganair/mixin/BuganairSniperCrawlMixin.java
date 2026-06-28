@@ -16,7 +16,7 @@ public abstract class BuganairSniperCrawlMixin {
     private void buganair$overrideCrawlPose(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity)(Object)this;
 
-        boolean isCrawling = false;
+        boolean isCrawling;
 
         // 1. CLIENT-SIDE CHECK: Camera position & local prediction rely on this
         if (player.getEntityWorld().isClient()) {

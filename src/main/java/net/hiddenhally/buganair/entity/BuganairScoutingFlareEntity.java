@@ -1,17 +1,9 @@
 package net.hiddenhally.buganair.entity;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.hiddenhally.buganair.BuganairMod;
 import net.hiddenhally.buganair.config.BuganairConfig;
-import net.hiddenhally.buganair.network.BuganairOreRadarPayload;
-import net.hiddenhally.buganair.network.BuganairRadarSyncPayload;
 import net.hiddenhally.buganair.network.BuganairScoutingFlareSyncPayload;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.*;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -25,25 +17,13 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.core.jmx.Server;
-import org.joml.Matrix4f;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.random.RandomGenerator;
 
-import static net.hiddenhally.buganair.client.BuganairRadarClientState.drawFilledCube;
 
 public class BuganairScoutingFlareEntity extends ThrownItemEntity {
-
-    private static boolean isActive = true;
 
     public BuganairScoutingFlareEntity(EntityType<? extends ThrownItemEntity> entityType, World world) {
         super(entityType, world);

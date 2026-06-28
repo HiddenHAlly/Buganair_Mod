@@ -1,17 +1,13 @@
 package net.hiddenhally.buganair.client;
 
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.entity.state.BoatEntityRenderState;
-import net.minecraft.client.util.math.MatrixStack;
 
 public class BuganairSpruceBoatModel extends EntityModel<BoatEntityRenderState> {
-    private final ModelPart root;
 
     public BuganairSpruceBoatModel(ModelPart root) {
         super(root);
-        this.root = root;
     }
 
     public static TexturedModelData getTexturedModelData() {

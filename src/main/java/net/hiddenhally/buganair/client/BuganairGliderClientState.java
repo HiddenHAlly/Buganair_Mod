@@ -25,7 +25,7 @@ public final class BuganairGliderClientState {
         }
     }
 
-    public static void toggleGliding() { setGliding(!gliding); }
+    //public static void toggleGliding() { setGliding(!gliding); }
 
     public static float getPitch() { return pitch; }
     public static float getYaw()   { return yaw; }
@@ -45,18 +45,7 @@ public final class BuganairGliderClientState {
         pitch = MathHelper.wrapDegrees(pitch);
     }
 
-    public static void handleMouseInput(double deltaX, double deltaY, double sensitivity) {
-        // Channels mouse into true unconstrained flight simulator coordinate vectors
-        pitch += (float) (deltaY * sensitivity * 0.15f);
-        roll  += (float) (deltaX * sensitivity * 0.15f);
 
-        // Normalize roll angles within -180 to 180 boundary
-        if (roll > 180f) roll -= 360f;
-        if (roll < -180f) roll += 360f;
-
-        if (pitch > 360f) pitch -= 360f;
-        if (pitch < -360f) pitch += 360f;
-    }
 
     public static void handleKeyboardInput(boolean strafeLeft, boolean strafeRight) {
         float rollSpeed = 4.0f; // Gradi di inclinazione a tick

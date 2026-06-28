@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class BuganairPlayerArmPoseMixin {
 
     // Update the descriptor to match the game's expectations (PlayerLikeEntity, Arm)
-    @Inject(method = "getArmPose", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getArmPose*", at = @At("HEAD"), cancellable = true)
     private static void buganair$setSniperPose(PlayerLikeEntity player, Arm arm, CallbackInfoReturnable<BipedEntityModel.ArmPose> cir) {
         // We only want to apply this if it's actually a player
         if (player instanceof PlayerEntity playerEntity) {

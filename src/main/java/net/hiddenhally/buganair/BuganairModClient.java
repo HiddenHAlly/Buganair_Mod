@@ -51,14 +51,10 @@ public class BuganairModClient implements ClientModInitializer {
         BuganairRadarClientState.registerRenderer();
         BuganairScoutingFlareClientState.registerRenderer();
 
-        ClientPlayNetworking.registerGlobalReceiver(BuganairRadarSyncPayload.ID, (payload, context) -> {
-            context.client().execute(() -> BuganairRadarClientState.startRadar(payload.center()));
-        });
+        ClientPlayNetworking.registerGlobalReceiver(BuganairRadarSyncPayload.ID, (payload, context) -> context.client().execute(() -> BuganairRadarClientState.startRadar(payload.center())));
 
-        ClientPlayNetworking.registerGlobalReceiver(BuganairScoutingFlareSyncPayload.ID, (payload, context) -> {
-            context.client().execute(() ->
-                    BuganairScoutingFlareClientState.startRadar(payload.center(), payload.enemy()));
-        });
+        ClientPlayNetworking.registerGlobalReceiver(BuganairScoutingFlareSyncPayload.ID, (payload, context) -> context.client().execute(() ->
+                BuganairScoutingFlareClientState.startRadar(payload.center(), payload.enemy())));
 
         // Put this along with your other registrations:
         EntityModelLayerRegistry.registerModelLayer(

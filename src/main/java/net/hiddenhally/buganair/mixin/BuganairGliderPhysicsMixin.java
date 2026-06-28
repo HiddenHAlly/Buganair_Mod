@@ -1,6 +1,5 @@
 package net.hiddenhally.buganair.mixin;
 
-import net.hiddenhally.buganair.Buganair;
 import net.hiddenhally.buganair.BuganairMod;
 import net.hiddenhally.buganair.BuganairServerGliderState;
 import net.hiddenhally.buganair.client.BuganairGliderClientState;
@@ -120,9 +119,6 @@ public abstract class BuganairGliderPhysicsMixin {
         if (fallSpeed > -0.06) {
             fallSpeed = -0.06;
         }
-//        if (player.age % 5 == 0) {
-//            Buganair.LOGGER.info("{}",liftFactor);
-//        }
         currentVel = currentVel.add(0.0, fallSpeed + liftFactor * 0.04, 0.0);
 
         // ... (Keep your vanilla dive force and climb force logic here) ...
@@ -177,9 +173,6 @@ public abstract class BuganairGliderPhysicsMixin {
         if (stack.isEmpty()) return 0;
 
         var optionalEnchant = player.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOptional(key);
-        if (optionalEnchant.isPresent()) {
-            return EnchantmentHelper.getLevel(optionalEnchant.get(), stack);
-        }
-        return 0;
+        return optionalEnchant.map(enchantmentReference -> EnchantmentHelper.getLevel(enchantmentReference, stack)).orElse(0);
     }
 }

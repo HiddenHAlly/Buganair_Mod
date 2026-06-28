@@ -1,7 +1,6 @@
 package net.hiddenhally.buganair.client;
 
 import net.hiddenhally.buganair.Buganair;
-import net.hiddenhally.buganair.BuganairModClient;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
@@ -15,7 +14,6 @@ import net.minecraft.client.render.state.CameraRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.util.Identifier;
-import net.hiddenhally.buganair.client.Buganair_Converted;
 
 import java.util.HashMap;
 import java.util.Map;

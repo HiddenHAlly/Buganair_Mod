@@ -3,22 +3,16 @@ package net.hiddenhally.buganair.client;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.hiddenhally.buganair.Buganair;
 import net.hiddenhally.buganair.config.BuganairConfig;
-import net.hiddenhally.buganair.network.BuganairGliderPayload;
 import net.hiddenhally.buganair.network.BuganairOreRadarPayload;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
@@ -30,7 +24,6 @@ import net.minecraft.util.shape.VoxelShapes;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static net.minecraft.client.gl.RenderPipelines.*;
 
@@ -98,9 +91,6 @@ public class BuganairRadarClientState {
                 BlockState state = client.world.getBlockState(pos);
 
                 if (state.isIn(ORE_TAG) || state.toString().contains("ore")) {
-//                    if (state.equals(Blocks.COAL_ORE.getDefaultState())) {
-//                        Buganair.LOGGER.info("Coal Ore");
-//                    }
                     tempOres.add(pos.toImmutable());
                 }
             }
@@ -127,11 +117,6 @@ public class BuganairRadarClientState {
             VertexConsumerProvider.Immediate vertexConsumers = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
 
             // Extract Colors
-            int outlineColor = BuganairConfig.INSTANCE.outlineColor;
-            float oA = ((outlineColor >> 24) & 0xFF) / 255f;
-            float oR = ((outlineColor >> 16) & 0xFF) / 255f;
-            float oG = ((outlineColor >> 8) & 0xFF) / 255f;
-            float oB = (outlineColor & 0xFF) / 255f;
 
             int bubbleColor = BuganairConfig.INSTANCE.bubbleColor;
             float bA = ((bubbleColor >> 24) & 0xFF) / 255f;
@@ -139,17 +124,15 @@ public class BuganairRadarClientState {
             float bG = ((bubbleColor >> 8) & 0xFF) / 255f;
             float bB = (bubbleColor & 0xFF) / 255f;
 
-            VertexConsumer lineBuffer = vertexConsumers.getBuffer(RenderLayers.lines());
-            Matrix4f matrix = context.matrices().peek().getPositionMatrix();
             MinecraftClient client = MinecraftClient.getInstance();
             assert client.world != null;
 
             // 1. Draw Ore Outlines
             for (BlockPos pos : foundOres) {
-                outlineColor = BuganairConfig.INSTANCE.outlineColor;
+                //outlineColor = BuganairConfig.INSTANCE.outlineColor;
 
                 BlockState state = client.world.getBlockState(pos);
-                outlineColor = getBlockColor(state,outlineColor);
+                //outlineColor = getBlockColor(state,BuganairConfig.INSTANCE.outlineColor);
 
 
                 double x = pos.getX() - camPos.x;
@@ -185,7 +168,7 @@ public class BuganairRadarClientState {
                         x,
                         y,
                         z,
-                        outlineColor-BuganairConfig.INSTANCE.outlineColorAlphaRemoval,
+                        getBlockColor(state,BuganairConfig.INSTANCE.outlineColor)-BuganairConfig.INSTANCE.outlineColorAlphaRemoval,
                         BuganairConfig.INSTANCE.outlineSize
                 );
                 //RenderLayers.debugFilledBox().
@@ -202,7 +185,7 @@ public class BuganairRadarClientState {
                 double cy = radarCenter.getY() + 0.5 - camPos.y;
                 double cz = radarCenter.getZ() + 0.5 - camPos.z;
 
-                double r = currentRadius;
+                //double r = currentRadius;
                 //double r = 2;
                 //float alpha = 1.0f;
 
@@ -240,12 +223,12 @@ public class BuganairRadarClientState {
                 drawFilledCube(
                         context.matrices().peek().getPositionMatrix(),
                         fillBuffer,
-                        (float)(cx - r),
-                        (float)(cy - r),
-                        (float)(cz - r),
-                        (float)(cx + r),
-                        (float)(cy + r),
-                        (float)(cz + r),
+                        (float)(cx - currentRadius),
+                        (float)(cy - currentRadius),
+                        (float)(cz - currentRadius),
+                        (float)(cx + currentRadius),
+                        (float)(cy + currentRadius),
+                        (float)(cz + currentRadius),
                         bR,
                         bG,
                         bB,
@@ -299,8 +282,8 @@ public class BuganairRadarClientState {
                         context.matrices(),
                         outlineBuffer,
                         VoxelShapes.cuboid(
-                                -r, -r, -r,
-                                r,  r,  r
+                                -currentRadius, -currentRadius, -currentRadius,
+                                currentRadius,  currentRadius,  currentRadius
                         ),
                         cx,
                         cy,
@@ -446,29 +429,5 @@ public class BuganairRadarClientState {
         buffer.vertex(matrix, maxX, minY, maxZ).color(r,g,b,a);
         buffer.vertex(matrix, maxX, minY, minZ).color(r,g,b,a);
         buffer.vertex(matrix, minX, minY, minZ).color(r,g,b,a);
-    }
-
-    // Helper method to draw a simple bounding box using line primitives
-    private static void drawBoxLines(Matrix4f matrix, VertexConsumer buffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float r, float g, float b, float a) {
-        float x1 = (float) minX, y1 = (float) minY, z1 = (float) minZ;
-        float x2 = (float) maxX, y2 = (float) maxY, z2 = (float) maxZ;
-
-        // Bottom face lines
-        buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).normal(1, 0, 0); buffer.vertex(matrix, x2, y1, z1).color(r, g, b, a).normal(1, 0, 0);
-        buffer.vertex(matrix, x2, y1, z1).color(r, g, b, a).normal(0, 0, 1); buffer.vertex(matrix, x2, y1, z2).color(r, g, b, a).normal(0, 0, 1);
-        buffer.vertex(matrix, x2, y1, z2).color(r, g, b, a).normal(-1, 0, 0); buffer.vertex(matrix, x1, y1, z2).color(r, g, b, a).normal(-1, 0, 0);
-        buffer.vertex(matrix, x1, y1, z2).color(r, g, b, a).normal(0, 0, -1); buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).normal(0, 0, -1);
-
-        // Top face lines
-        buffer.vertex(matrix, x1, y2, z1).color(r, g, b, a).normal(1, 0, 0); buffer.vertex(matrix, x2, y2, z1).color(r, g, b, a).normal(1, 0, 0);
-        buffer.vertex(matrix, x2, y2, z1).color(r, g, b, a).normal(0, 0, 1); buffer.vertex(matrix, x2, y2, z2).color(r, g, b, a).normal(0, 0, 1);
-        buffer.vertex(matrix, x2, y2, z2).color(r, g, b, a).normal(-1, 0, 0); buffer.vertex(matrix, x1, y2, z2).color(r, g, b, a).normal(-1, 0, 0);
-        buffer.vertex(matrix, x1, y2, z2).color(r, g, b, a).normal(0, 0, -1); buffer.vertex(matrix, x1, y2, z1).color(r, g, b, a).normal(0, 0, -1);
-
-        // Vertical corner lines
-        buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).normal(0, 1, 0); buffer.vertex(matrix, x1, y2, z1).color(r, g, b, a).normal(0, 1, 0);
-        buffer.vertex(matrix, x2, y1, z1).color(r, g, b, a).normal(0, 1, 0); buffer.vertex(matrix, x2, y2, z1).color(r, g, b, a).normal(0, 1, 0);
-        buffer.vertex(matrix, x2, y1, z2).color(r, g, b, a).normal(0, 1, 0); buffer.vertex(matrix, x2, y2, z2).color(r, g, b, a).normal(0, 1, 0);
-        buffer.vertex(matrix, x1, y1, z2).color(r, g, b, a).normal(0, 1, 0); buffer.vertex(matrix, x1, y2, z2).color(r, g, b, a).normal(0, 1, 0);
     }
 }

@@ -6,7 +6,6 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
@@ -26,7 +25,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Vec3d;
 
 // Depending on your exact mappings, this might also be called VehicleInventory
 public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedScreenHandlerFactory, RideableInventory {
@@ -235,22 +233,6 @@ public class BuganairBoatEntity extends BoatEntity implements Inventory, NamedSc
         }
 
     }
-
-    // 2. THE BYPASS: Intercept the ejection command
-//    @Override
-//    public void removeAllPassengers() {
-//        // AbstractBoatEntity calls this in exactly two places:
-//        // 1. When ticksUnderwater >= 60.0F
-//        // 2. When dragged down by a bubble column
-//
-//        // By NOT calling super.removeAllPassengers() here, we completely
-//        // ignore the boat's attempt to kick everyone out.
-//
-//        // We only allow ejection if the boat is actually being broken/killed.
-//        if (this.isRemoved()) {
-//            super.removeAllPassengers();
-//        }
-//    }
 
     private Vec3d getMovementVector(float yaw) {
         double x = sidewaysInput;

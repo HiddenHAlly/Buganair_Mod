@@ -32,9 +32,6 @@ public class BuganairRecipeScreen extends Screen {
     private static final int RES_Y   = GRID_Y + CELL;           //  72
 
     // ── colori (ARGB) ─────────────────────────────────────────────────────────
-    private static final int C_BORDER    = 0xFF3E2000;
-    private static final int C_PARCHMENT = 0xFFD4A96A;
-    private static final int C_INNER     = 0xFFEDD59A;
     private static final int C_SLOT_DK   = 0xFF8B6040;
     private static final int C_SLOT_LT   = 0xFFCCA870;
     private static final int C_SEP       = 0xFF6B4A28;
@@ -178,21 +175,6 @@ public class BuganairRecipeScreen extends Screen {
             if (mx >= rx && mx < rx + SLOT && my >= ry && my < ry + SLOT) {
                 hoveredStack = resultStack;
             }
-        }
-    }
-
-    private void drawIngredientsList(DrawContext ctx, int px, int py) {
-        int lx = px + 18+OFFSET_X;
-        int ly = py + GRID_Y + 3 * CELL + 12+OFFSET_Y;
-
-        ctx.drawText(this.textRenderer,
-                Text.translatable("screen.buganair.recipe_map.ingredients"),
-                lx, ly, C_TXT_TITLE, false);
-
-        String[] lines = { "· 4× Diamond", "· 2× Chest", "· 1× Oak Boat", "· 1× Wooden Shovel","· 1× Buganair Blueprint" };
-        for (int i = 0; i < lines.length; i++) {
-            ctx.drawText(this.textRenderer, Text.literal(lines[i]),
-                    lx + 4, ly + 12 + i * 10, C_TXT_BODY, false);
         }
     }
 

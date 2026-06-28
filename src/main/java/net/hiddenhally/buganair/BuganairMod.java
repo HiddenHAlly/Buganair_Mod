@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.hiddenhally.buganair.client.BuganairSpruceBoatModel;
 import net.hiddenhally.buganair.config.BuganairConfig;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.item.BuganairBoatItem;
@@ -14,6 +13,7 @@ import net.hiddenhally.buganair.network.*;
 import net.hiddenhally.buganair.screen.BuganairBoatScreenHandler;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.EquippableComponent;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.RepairableComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
@@ -22,7 +22,6 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -36,6 +35,7 @@ import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.loot.LootPool;
@@ -53,10 +53,11 @@ import net.minecraft.util.Rarity;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.Vec3d;
 import net.hiddenhally.buganair.item.BuganairHangGliderItem;
-import net.hiddenhally.buganair.BuganairServerGliderState;
 import net.minecraft.item.equipment.EquipmentAssetKeys; // Make sure to import this!
+import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -68,7 +69,6 @@ public class BuganairMod implements ModInitializer {
     public static final RegistryKey<Enchantment> WIND_RIDER = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "wind_rider"));
     public static final RegistryKey<Enchantment> AERODYNAMIC = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "aerodynamic"));
     public static final RegistryKey<Enchantment> THERMAL_LIFT = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "thermal_lift"));
-    public static final RegistryKey<Enchantment> LIGHTWEIGHT = RegistryKey.of(RegistryKeys.ENCHANTMENT, Identifier.of(MOD_ID, "lightweight"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_ACACIA_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_acacia_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_BAMBOO_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_bamboo_boat"));
     private static final RegistryKey<EntityType<?>> BUGANAIR_BIRCH_BOAT_ENTITY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "buganair_birch_boat"));
@@ -94,6 +94,12 @@ public class BuganairMod implements ModInitializer {
                             .maxCount(1)
                             // Sets the text color to Epic (Purple)
                             .component(DataComponentTypes.RARITY, Rarity.EPIC)
+                            .component(
+                                    DataComponentTypes.LORE,
+                                    new LoreComponent(List.of(
+                                            Text.translatable("item.buganair.buganair_sniper.tooltip_1").formatted(Formatting.GRAY),
+                                            Text.translatable("item.buganair.buganair_sniper.tooltip_2").formatted(Formatting.YELLOW)
+                                    )))
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_sniper")))
             )
     );
@@ -129,13 +135,20 @@ public class BuganairMod implements ModInitializer {
                             // Sets the text color to Epic (Purple)
                             .component(DataComponentTypes.RARITY, Rarity.EPIC)
 
+                            .component(
+                                    DataComponentTypes.LORE,
+                                    new LoreComponent(List.of(
+                                            Text.translatable("item.buganair.buganair_hang_glider.tooltip_1").formatted(Formatting.GRAY),
+                                            Text.translatable("item.buganair.buganair_hang_glider.tooltip_2").formatted(Formatting.YELLOW)
+                                    )))
+
                             // 1. Enables flight & automatically grants the "don't break at 0 durability" protection
                             .component(DataComponentTypes.GLIDER, Unit.INSTANCE)
 
                             // 2. Defines what item fixes it in an anvil natively
                             .component(
                                     DataComponentTypes.REPAIRABLE,
-                                    new RepairableComponent(RegistryEntryList.of(Items.PHANTOM_MEMBRANE.getRegistryEntry()))
+                                    new RepairableComponent(RegistryEntryList.of(Items.PHANTOM_MEMBRANE.getDefaultStack().getRegistryEntry()))
                             )
 
                             // 3. Links your custom 3D model asset
@@ -156,6 +169,12 @@ public class BuganairMod implements ModInitializer {
                     new Item.Settings().
                             maxCount(1)// Sets the text color to Epic (Purple)
                             .component(DataComponentTypes.RARITY, Rarity.EPIC)
+                            .component(
+                                    DataComponentTypes.LORE,
+                                    new LoreComponent(List.of(
+                                            Text.translatable("item.buganair.buganair_ore_radar.tooltip_1").formatted(Formatting.GRAY),
+                                            Text.translatable("item.buganair.buganair_ore_radar.tooltip_2").formatted(Formatting.YELLOW)
+                                    )))
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "buganair_ore_radar")))
             )
     );
@@ -172,6 +191,13 @@ public class BuganairMod implements ModInitializer {
                             .maxCount(1)
                             // Sets the text color to Epic (Purple)
                             .component(DataComponentTypes.RARITY, Rarity.EPIC)
+                            .component(
+                                    DataComponentTypes.LORE,
+                                    new LoreComponent(List.of(
+                                            Text.translatable("item.buganair.buganair_recipe_map.tooltip_1").formatted(Formatting.GRAY),
+                                            Text.translatable("item.buganair.buganair_recipe_map.tooltip_2").formatted(Formatting.YELLOW)
+                                    )))
+
                             .registryKey(RegistryKey.of(
                                     RegistryKeys.ITEM,
                                     Identifier.of(MOD_ID, "buganair_recipe_map")))
@@ -186,6 +212,12 @@ public class BuganairMod implements ModInitializer {
                     new Item.Settings()
                             .maxCount(16) // Stackabile fino a 16 unità
                             .component(DataComponentTypes.RARITY, Rarity.RARE)
+                            .component(
+                                    DataComponentTypes.LORE,
+                                    new LoreComponent(List.of(
+                                            Text.translatable("item.buganair.buganair_scouting_flare.tooltip_1").formatted(Formatting.GRAY),
+                                            Text.translatable("item.buganair.buganair_scouting_flare.tooltip_2").formatted(Formatting.YELLOW)
+                                    )))
                             .registryKey(RegistryKey.of(RegistryKeys.ITEM, net.minecraft.util.Identifier.of(MOD_ID, "buganair_scouting_flare")))
             )
     );
@@ -210,10 +242,12 @@ public class BuganairMod implements ModInitializer {
                     new ScreenHandlerType<>(BuganairBoatScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
             );
 
-    private static final RegistryKey<Item> BUGANAIR_BOAT_ITEM_KEY = RegistryKey.of(
-        RegistryKeys.ITEM,
-        Identifier.of(MOD_ID, "buganair_boat")
-    );
+    static {
+        RegistryKey.of(
+                RegistryKeys.ITEM,
+                Identifier.of(MOD_ID, "buganair_boat")
+        );
+    }
 
     public static final EntityType<BuganairBoatEntity> BUGANAIR_ACACIA_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_ACACIA_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_ACACIA_BOAT_ENTITY_KEY));
     public static final EntityType<BuganairBoatEntity> BUGANAIR_BAMBOO_BOAT_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, BUGANAIR_BAMBOO_BOAT_ENTITY_KEY, EntityType.Builder.create(BuganairBoatEntity::new, SpawnGroup.MISC).dimensions(1.375F, 0.5625F).maxTrackingRange(10).trackingTickInterval(3).build(BUGANAIR_BAMBOO_BOAT_ENTITY_KEY));
@@ -388,13 +422,11 @@ public class BuganairMod implements ModInitializer {
 
         // 2. REGISTER THE GLOBAL RECEIVER
         // Add this alongside your ServerPlayNetworking.registerGlobalReceiver blocks:
-        ServerPlayNetworking.registerGlobalReceiver(BuganairSniperCrawlPayload.ID, (payload, context) -> {
-            context.server().execute(() -> {
-                ServerPlayerEntity player = context.player();
-                // Update the server-side state map based on the client's action
-                setSniperCrawling(player.getUuid(), payload.crawling());
-            });
-        });
+        ServerPlayNetworking.registerGlobalReceiver(BuganairSniperCrawlPayload.ID, (payload, context) -> context.server().execute(() -> {
+            ServerPlayerEntity player = context.player();
+            // Update the server-side state map based on the client's action
+            setSniperCrawling(player.getUuid(), payload.crawling());
+        }));
 
         // 3. PREVENT MEMORY LEAKS (Clean up when a player leaves the server)
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
@@ -404,7 +436,7 @@ public class BuganairMod implements ModInitializer {
 
         ServerPlayNetworking.registerGlobalReceiver(BuganairSniperFirePayload.ID, (payload, context) -> context.server().execute(() -> {
             ServerPlayerEntity player = context.player();
-            ServerWorld world = (ServerWorld) player.getEntityWorld();
+            ServerWorld world = player.getEntityWorld();
 
             long now = world.getTime();
             long last = SNIPER_LAST_FIRE_TICK.getOrDefault(player.getUuid(), 0L);
@@ -424,17 +456,7 @@ public class BuganairMod implements ModInitializer {
             // The exact 3D coordinate where the camera is located
             Vec3d spawnPos = centerEyePos.add(peekOffsetVector);
 
-            Vec3d direction = player.getRotationVector();
-
-            // 2. Use the exact coordinate constructor (x, y, z) instead of passing the PlayerEntity
-            ArrowEntity arrow = new ArrowEntity(world, spawnPos.x, spawnPos.y, spawnPos.z, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
-
-            // CRITICAL: Because we didn't pass 'player' to the constructor, we must manually set the owner!
-            arrow.setOwner(player);
-
-            arrow.setNoGravity(true);
-            arrow.setVelocity(direction.multiply(BuganairConfig.INSTANCE.SNIPER_ARROW_SPEED));
-            arrow.setDamage(BuganairConfig.INSTANCE.SNIPER_ARROW_DAMAGE);
+            ArrowEntity arrow = getArrowEntity(player, world, spawnPos);
 
             world.spawnEntity(arrow);
 
@@ -520,21 +542,15 @@ public class BuganairMod implements ModInitializer {
             ServerPlayerEntity player = context.player();
             boolean wantsToGlide = payload.isGliding();
 
-            if (wantsToGlide && BuganairHangGliderItem.isWearingGlider(player) && !player.isOnGround()) {
-                BuganairServerGliderState.setGliding(player.getUuid(), true);
-            } else {
-                BuganairServerGliderState.setGliding(player.getUuid(), false);
-            }
+            BuganairServerGliderState.setGliding(player.getUuid(), wantsToGlide && BuganairHangGliderItem.isWearingGlider(player) && !player.isOnGround());
         });
 
         // Process arriving client flight updates on the logical server
         // Process arriving client flight updates safely on the logical server main thread
-        ServerPlayNetworking.registerGlobalReceiver(BuganairGliderOrientationPayload.ID, (payload, context) -> {
-            context.server().execute(() -> {
-                ServerPlayerEntity player = context.player();
-                BuganairServerGliderState.updateOrientation(player.getUuid(), payload.pitch(), payload.yaw(), payload.roll());
-            });
-        });
+        ServerPlayNetworking.registerGlobalReceiver(BuganairGliderOrientationPayload.ID, (payload, context) -> context.server().execute(() -> {
+            ServerPlayerEntity player = context.player();
+            BuganairServerGliderState.updateOrientation(player.getUuid(), payload.pitch(), payload.yaw());
+        }));
 
         // 4. Register the group inside your onInitialize method
         Registry.register(Registries.ITEM_GROUP, BUGANAIR_ITEM_GROUP_KEY, BUGANAIR_ITEM_GROUP);
@@ -564,5 +580,20 @@ public class BuganairMod implements ModInitializer {
 
 
         Buganair.LOGGER.info("Mod {} initialized", MOD_ID);
+    }
+
+    private static @NonNull ArrowEntity getArrowEntity(ServerPlayerEntity player, ServerWorld world, Vec3d spawnPos) {
+        Vec3d direction = player.getRotationVector();
+
+        // 2. Use the exact coordinate constructor (x, y, z) instead of passing the PlayerEntity
+        ArrowEntity arrow = new ArrowEntity(world, spawnPos.x, spawnPos.y, spawnPos.z, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
+
+        // CRITICAL: Because we didn't pass 'player' to the constructor, we must manually set the owner!
+        arrow.setOwner(player);
+
+        arrow.setNoGravity(true);
+        arrow.setVelocity(direction.multiply(BuganairConfig.INSTANCE.SNIPER_ARROW_SPEED));
+        arrow.setDamage(BuganairConfig.INSTANCE.SNIPER_ARROW_DAMAGE);
+        return arrow;
     }
 }

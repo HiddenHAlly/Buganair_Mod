@@ -13,35 +13,8 @@ public class Buganair_Converted extends EntityModel<BoatEntityRenderState> {
 			Identifier.of(Buganair.MOD_ID, "buganair_converted"), "main"
 	);
 
-	private final ModelPart base;
-	private final ModelPart group7;
-	private final ModelPart group;
-	private final ModelPart group12;
-	private final ModelPart group8;
-	private final ModelPart group9;
-	private final ModelPart group2;
-	private final ModelPart group3;
-	private final ModelPart group4;
-	private final ModelPart group6;
-	private final ModelPart group11;
-	private final ModelPart group5;
-	private final ModelPart group10;
-
-	public Buganair_Converted(ModelPart root) {
+    public Buganair_Converted(ModelPart root) {
 		super(root); // Automatically renders the entire hierarchy starting from root!
-		this.base = root.getChild("base");
-		this.group7 = this.base.getChild("group7");
-		this.group = this.group7.getChild("group");
-		this.group12 = this.group.getChild("group12");
-		this.group8 = this.base.getChild("group8");
-		this.group9 = this.base.getChild("group9");
-		this.group2 = root.getChild("group2");
-		this.group3 = root.getChild("group3");
-		this.group4 = root.getChild("group4");
-		this.group6 = root.getChild("group6");
-		this.group11 = this.group6.getChild("group11");
-		this.group5 = root.getChild("group5");
-		this.group10 = root.getChild("group10");
 	}
 
 	public static TexturedModelData getTexturedModelData() {
