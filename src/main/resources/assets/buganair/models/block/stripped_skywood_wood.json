@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "buganair:block/wood/stripped_skywood_log",
+    "side": "buganair:block/wood/stripped_skywood_log"
+  }
+}

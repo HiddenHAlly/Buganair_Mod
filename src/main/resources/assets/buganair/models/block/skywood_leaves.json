@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/leaves",
+  "textures": {
+    "all": "buganair:block/wood/skywood_leaves"
+  }
+}

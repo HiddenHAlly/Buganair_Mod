@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "buganair:block/skystone_slab"
+    },
+    "type=double": {
+      "model": "buganair:block/skystone"
+    },
+    "type=top": {
+      "model": "buganair:block/skystone_slab_top"
+    }
+  }
+}

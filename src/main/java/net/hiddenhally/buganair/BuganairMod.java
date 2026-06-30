@@ -6,11 +6,18 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.hiddenhally.buganair.block.BuganairBlocks;
+import net.hiddenhally.buganair.block.entity.AetherForgeBlockEntity;
 import net.hiddenhally.buganair.config.BuganairConfig;
 import net.hiddenhally.buganair.entity.BuganairBoatEntity;
 import net.hiddenhally.buganair.item.BuganairBoatItem;
 import net.hiddenhally.buganair.network.*;
+import net.hiddenhally.buganair.screen.AetherForgeScreenHandler;
 import net.hiddenhally.buganair.screen.BuganairBoatScreenHandler;
+import net.minecraft.block.BlockEntityProvider;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.EquippableComponent;
 import net.minecraft.component.type.LoreComponent;
@@ -233,6 +240,25 @@ public class BuganairMod implements ModInitializer {
                     .build(BUGANAIR_SCOUTING_FLARE_ENTITY_KEY)
     );
 
+    // Make sure to import this at the top of BuganairMod.java:
+    // import net.minecraft.block.entity.BlockEntityType;
+
+    // 2. Replace your old AETHER_FORGE_BE field with this:
+    // Make sure to add this import at the top of BuganairMod.java
+    public static final BlockEntityType<AetherForgeBlockEntity> AETHER_FORGE_BE = Registry.register(
+            Registries.BLOCK_ENTITY_TYPE,
+            Identifier.of(MOD_ID, "aether_forge_block_entity"),
+            FabricBlockEntityTypeBuilder.create(AetherForgeBlockEntity::new, BuganairBlocks.AETHER_FORGE).build()
+    );
+
+    // Add this alongside your other static registrations
+    public static final ScreenHandlerType<AetherForgeScreenHandler> AETHER_FORGE_SCREEN_HANDLER =
+            Registry.register(
+                    Registries.SCREEN_HANDLER,
+                    Identifier.of(MOD_ID, "aether_forge"),
+                    new ScreenHandlerType<>(AetherForgeScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
+            );
+
 
     // Register your custom ScreenHandlerType directly here!
     public static final ScreenHandlerType<BuganairBoatScreenHandler> BUGANAIR_BOAT_SCREEN_HANDLER =
@@ -328,6 +354,7 @@ public class BuganairMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        BuganairBlocks.register();
 
         // Run this inside your main onInitialize() method
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {

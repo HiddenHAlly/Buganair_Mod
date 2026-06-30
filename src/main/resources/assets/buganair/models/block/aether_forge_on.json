@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "buganair:block/functional/aether_forge_front_on",
+    "side": "buganair:block/functional/aether_forge_side",
+    "top": "buganair:block/functional/aether_forge_top"
+  }
+}

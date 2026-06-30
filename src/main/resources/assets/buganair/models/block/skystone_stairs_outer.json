@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "buganair:block/stone/skystone",
+    "side": "buganair:block/stone/skystone",
+    "top": "buganair:block/stone/skystone"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "buganair:block/stripped_skywood_wood",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "buganair:block/stripped_skywood_wood"
+    },
+    "axis=z": {
+      "model": "buganair:block/stripped_skywood_wood",
+      "x": 90
+    }
+  }
+}

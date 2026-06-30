@@ -47,6 +47,8 @@ public class BuganairModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        // This bridges the logical ScreenHandlerType directly to your physical render UI Screen
+        HandledScreens.register(BuganairMod.AETHER_FORGE_SCREEN_HANDLER, AetherForgeScreen::new);
         // Add this near the top
         BuganairRadarClientState.registerRenderer();
         BuganairScoutingFlareClientState.registerRenderer();

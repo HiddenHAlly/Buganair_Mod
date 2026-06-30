@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "buganair:block/skystone"
+      },
+      {
+        "model": "buganair:block/skystone_mirrored"
+      },
+      {
+        "model": "buganair:block/skystone",
+        "y": 180
+      },
+      {
+        "model": "buganair:block/skystone_mirrored",
+        "y": 180
+      }
+    ]
+  }
+}
