@@ -191,6 +191,18 @@ public class BuganairBlocks {
             )
     );
 
+    public static final Block SKYGRASS = register(
+            "skygrass",
+            new Block(AbstractBlock.Settings.create()
+                    .mapColor(MapColor.OFF_WHITE)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .requiresTool()
+                    .strength(1.5F, 6.0F)
+                    .sounds(BlockSoundGroup.STONE)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, net.minecraft.util.Identifier.of(MOD_ID, "skygrass")))
+            )
+    );
+
     /** Skystone slab. */
     public static final Block SKYSTONE_SLAB = register(
             "skystone_slab",

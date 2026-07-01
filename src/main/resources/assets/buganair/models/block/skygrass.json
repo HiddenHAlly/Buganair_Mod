@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "buganair:block/stone/skystone",
+    "side": "buganair:block/surface/skygrass",
+    "top": "buganair:block/surface/skygrass_block_top"
+  }
+}

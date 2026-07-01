@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "buganair:block/skygrass"
+      },
+      {
+        "model": "buganair:block/skygrass",
+        "y": 90
+      },
+      {
+        "model": "buganair:block/skygrass",
+        "y": 180
+      },
+      {
+        "model": "buganair:block/skygrass",
+        "y": 270
+      }
+    ]
+  }
+}

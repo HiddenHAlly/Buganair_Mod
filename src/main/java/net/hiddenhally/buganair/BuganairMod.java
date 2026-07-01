@@ -349,12 +349,28 @@ public class BuganairMod implements ModInitializer {
                 entries.add(BuganairMod.BUGANAIR_HANG_GLIDER_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_ORE_RADAR_ITEM.getDefaultStack());
                 entries.add(BuganairMod.BUGANAIR_SCOUTING_FLARE_ITEM.getDefaultStack());
+
+                // Blocks
+                entries.add(BuganairBlocks.AETHER_FORGE.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYWOOD_WOOD.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYWOOD_LOG.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYSTONE.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYGRASS.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKY_CRYSTAL_ORE.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYSTONE_SLAB.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYSTONE_STAIRS.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYWOOD_LEAVES.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.SKYWOOD_PLANKS.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.STRIPPED_SKYWOOD_LOG.asItem().getDefaultStack());
+                entries.add(BuganairBlocks.STRIPPED_SKYWOOD_WOOD.asItem().getDefaultStack());
             })
             .build();
 
     @Override
     public void onInitialize() {
         BuganairBlocks.register();
+        net.hiddenhally.buganair.worldgen.BuganairFeatures.register();
+        net.hiddenhally.buganair.worldgen.BuganairWorldgenInit.init();
 
         // Run this inside your main onInitialize() method
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
