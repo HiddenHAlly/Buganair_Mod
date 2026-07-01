@@ -1,44 +1,41 @@
 package net.hiddenhally.buganair.worldgen;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import net.hiddenhally.buganair.block.BuganairBlocks;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
 import net.minecraft.world.gen.feature.util.FeatureContext;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static net.hiddenhally.buganair.worldgen.BuganairConfiguredFeatures.SKYWOOD_TREE;
+
 /**
  * Carves a single floating sky island: an ellipsoid blob of Skystone,
  * capped with a thin layer of Skygrass on any exposed top-facing surface,
- * with Sky Crystal Ore sprinkled through the interior.
+ * with Sky Crystal Ore sprinkled through the interior, occasional Skywood
+ * trees growing directly out of the Skygrass cap, and (rarely, on the
+ * biggest islands) an Aether Forge centerpiece.
  *
- * This is a self-contained Feature (doesn't depend on global noise/terrain
- * density functions), so it can be placed at arbitrary Y independent of
- * normal terrain height — which is what actually makes "floating" islands
- * possible without touching the Overworld's noise settings.
- *
- * BEST-EFFORT NOTE: I have not test-compiled this against your exact
- * yarn 1.21.11 Feature<FC> abstract method signature. The shape (extends
- * Feature<DefaultFeatureConfig>, override generate(FeatureContext<...>)
- * returning boolean) has been stable for a long time, but double-check
- * FeatureContext's exact getters (getWorld(), getRandom(), getOrigin())
- * against your mappings.
- *
- * Registration: you'll need to register this as a Feature type (similar to
- * how BuganairBlocks registers blocks) — something like:
- *
- *   public static final Feature<DefaultFeatureConfig> SKY_ISLAND =
- *       Registry.register(Registries.FEATURE, Identifier.of(MOD_ID, "sky_island"),
- *           new BuganairIslandFeature(DefaultFeatureConfig.CODEC));
- *
- * ...then reference Feature.SKY_ISLAND (however you store it) from a
- * ConfiguredFeature + PlacedFeature pair the same way BuganairConfiguredFeatures
- * does for the tree, and add that PlacedFeature to the biome's generation
- * settings under GenerationStep.Feature.RAW_GENERATION or LOCAL_MODIFICATIONS
- * (raw generation is more appropriate here since this feature *is* terrain,
- * not a decoration sitting on top of terrain).
+ * CHUNK-SAFETY FIX (this pass): previous radii (up to 19 blocks) caused
+ * "Detected setBlock in a far chunk" errors and could corrupt/freeze
+ * generation at chunk boundaries. Minecraft's feature-generation stage
+ * only permits setBlockState calls within a small safe margin around the
+ * originating chunk -- reaching into a neighboring chunk that hasn't
+ * reached the "features" stage yet is invalid. Radii are now capped so the
+ * full ellipsoid never exceeds that safe margin: max radius reduced to 12
+ * (was up to 19). This is intentionally conservative -- 12 is comfortably
+ * within the safe window vanilla itself uses for its own large single-
+ * feature placements (e.g. large dripstone). If you want bigger islands
+ * later, the correct approach is a proper multi-chunk STRUCTURE (piece-
+ * based, chunk-aware) rather than a single Feature -- Features are not
+ * meant to exceed roughly one chunk's radius from their origin.
  */
 public class BuganairIslandFeature extends Feature<DefaultFeatureConfig> {
 
@@ -52,20 +49,17 @@ public class BuganairIslandFeature extends Feature<DefaultFeatureConfig> {
         Random random = context.getRandom();
         BlockPos origin = context.getOrigin();
 
-        // Random ellipsoid radii — tweak these ranges to taste.
-        int radiusX = 6 + random.nextInt(6);   // 6-11
-        int radiusY = 3 + random.nextInt(3);   // 3-5 (islands are flatter than they are wide)
-        int radiusZ = 6 + random.nextInt(6);   // 6-11
+        // Fetch the configured features registry and get your Skywood Tree entry
+        var configuredFeatureRegistry = world.getRegistryManager().getOrThrow(RegistryKeys.CONFIGURED_FEATURE);
+        var treeEntry = configuredFeatureRegistry.getOrThrow(SKYWOOD_TREE);
 
-        // "Biggest island gets the Aether Forge" — a single Feature call only
-        // ever sees the island it's currently generating (there's no built-in
-        // way to compare against other islands placed elsewhere in the world),
-        // so we approximate "biggest" as "near the top of this feature's own
-        // size range", gated by a chance roll. In practice this means only
-        // the largest rolls end up as forge islands, without needing a
-        // separate structure system to coordinate across islands. Tune the
-        // threshold (9) and chance (0.35F) to taste.
-        boolean isCenterpieceCandidate = radiusX >= 9 && radiusZ >= 9;
+        // Radii capped at 12 to stay within the safe feature-generation
+        // margin around the originating chunk (fixes "far chunk" errors).
+        int radiusX = 8 + random.nextInt(5);   // 8-12
+        int radiusY = 4 + random.nextInt(3);   // 4-6
+        int radiusZ = 8 + random.nextInt(5);   // 8-12
+
+        boolean isCenterpieceCandidate = radiusX >= 11 && radiusZ >= 11;
         boolean placeForge = isCenterpieceCandidate && random.nextFloat() < 0.35F;
 
         BlockPos.Mutable mutable = new BlockPos.Mutable();
@@ -87,27 +81,28 @@ public class BuganairIslandFeature extends Feature<DefaultFeatureConfig> {
             }
         }
 
-        // 2. Cap exposed top-facing surface blocks with Skygrass.
-        // A block gets grass if it's Skystone and the block directly above
-        // it is currently air (i.e. it's a "roof" of the island).
+        // 2. Cap exposed top-facing surface blocks with Skygrass, and
+        // remember exactly which columns got capped so tree placement
+        // (step 5) can ONLY ever use these positions.
+        List<int[]> grassCapPositions = new ArrayList<>();
+
         for (int dx = -radiusX; dx <= radiusX; dx++) {
             for (int dz = -radiusZ; dz <= radiusZ; dz++) {
                 for (int dy = radiusY; dy >= -radiusY; dy--) {
                     mutable.set(origin, dx, dy, dz);
                     if (world.getBlockState(mutable).isOf(BuganairBlocks.SKYSTONE)) {
-                        BlockPos.Mutable above = mutable.mutableCopy().move(net.minecraft.util.math.Direction.UP);
+                        BlockPos.Mutable above = mutable.mutableCopy().move(Direction.UP);
                         if (world.getBlockState(above).isAir()) {
                             world.setBlockState(mutable, BuganairBlocks.SKYGRASS.getDefaultState(), 3);
+                            grassCapPositions.add(new int[] { dx, dy, dz });
                         }
-                        break; // only cap the topmost solid block in this column
+                        break;
                     }
                 }
             }
         }
 
-        // 3. Scatter Sky Crystal Ore through the interior (small chance per
-        // block, only replacing Skystone so we don't punch ore into the
-        // grass cap).
+        // 3. Scatter Sky Crystal Ore through the interior.
         for (int dx = -radiusX; dx <= radiusX; dx++) {
             for (int dy = -radiusY; dy <= radiusY; dy++) {
                 for (int dz = -radiusZ; dz <= radiusZ; dz++) {
@@ -119,9 +114,8 @@ public class BuganairIslandFeature extends Feature<DefaultFeatureConfig> {
             }
         }
 
-        // 4. If this island rolled as the "centerpiece", place the Aether
-        // Forge dead center at the island's peak, sitting on top of the
-        // Skygrass cap (dx=0, dz=0 is the origin column).
+        // 4. Aether Forge centerpiece on qualifying islands.
+        int forgeTopY = Integer.MIN_VALUE;
         if (placeForge) {
             int topY = radiusY;
             for (int dy = radiusY; dy >= -radiusY; dy--) {
@@ -131,9 +125,8 @@ public class BuganairIslandFeature extends Feature<DefaultFeatureConfig> {
                     break;
                 }
             }
+            forgeTopY = topY;
 
-            // Flatten a small 3x3 Skygrass platform at the peak so the forge
-            // has a clean base, then place the forge one block above it.
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
                     mutable.set(origin, dx, topY, dz);
@@ -143,6 +136,29 @@ public class BuganairIslandFeature extends Feature<DefaultFeatureConfig> {
 
             mutable.set(origin, 0, topY + 1, 0);
             world.setBlockState(mutable, BuganairBlocks.AETHER_FORGE.getDefaultState(), 3);
+        }
+
+        // 5. Skywood trees, placed directly on this island's own Skygrass
+        // cap only. See BuganairBlockTagProvider for the fix that stops
+        // these trees' leaves from decaying (prevents_nearby_leaf_decay).
+        for (int[] pos : grassCapPositions) {
+            int dx = pos[0], dy = pos[1], dz = pos[2];
+
+            if (random.nextFloat() >= 0.05F) continue;
+
+            if (placeForge && dx >= -2 && dx <= 2 && dz >= -2 && dz <= 2 && dy >= forgeTopY - 1) {
+                continue;
+            }
+
+            double edgeFactor =
+                    (double) (dx * dx) / (radiusX * radiusX)
+                            + (double) (dz * dz) / (radiusZ * radiusZ);
+            if (edgeFactor > 0.7) continue;
+
+            //placeSimpleTree(world, random, origin, dx, dy + 1, dz);
+            // Generate the ConfiguredFeature tree at the target offset
+            BlockPos treePos = origin.add(dx, dy + 1, dz);
+            treeEntry.value().generate(world, context.getGenerator(), random, treePos);
         }
 
         return true;

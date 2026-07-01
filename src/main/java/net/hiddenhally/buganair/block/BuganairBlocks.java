@@ -8,6 +8,7 @@ import net.minecraft.block.enums.NoteBlockInstrument;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -19,6 +20,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.intprovider.ConstantIntProvider;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
+
+import java.util.function.Function;
 
 import static net.hiddenhally.buganair.Buganair.MOD_ID;
 
@@ -44,12 +47,7 @@ public class BuganairBlocks {
     /** Unstripped Skywood log. Behaves like a vanilla log. */
     public static final Block SKYWOOD_LOG = register(
             "skywood_log",
-            new PillarBlock(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.OFF_WHITE)
-                    .instrument(NoteBlockInstrument.BASS)
-                    .strength(2.0F)
-                    .sounds(BlockSoundGroup.WOOD)
-                    .burnable()
+            new PillarBlock(AbstractBlock.Settings.copy(Blocks.OAK_LOG.getDefaultState().getBlock())
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, net.minecraft.util.Identifier.of(MOD_ID, "skywood_log")))
             )
     );
@@ -57,12 +55,7 @@ public class BuganairBlocks {
     /** Skywood "wood" (log with bark on all sides). */
     public static final Block SKYWOOD_WOOD = register(
             "skywood_wood",
-            new PillarBlock(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.OFF_WHITE)
-                    .instrument(NoteBlockInstrument.BASS)
-                    .strength(2.0F)
-                    .sounds(BlockSoundGroup.WOOD)
-                    .burnable()
+            new PillarBlock(AbstractBlock.Settings.copy(Blocks.OAK_WOOD.getDefaultState().getBlock())
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, net.minecraft.util.Identifier.of(MOD_ID, "skywood_wood")))
             )
     );
@@ -98,34 +91,36 @@ public class BuganairBlocks {
      * Skywood leaves — slightly luminous (light level 4) to give the biome
      * a soft glow at night.
      */
-    public static final Block SKYWOOD_LEAVES = register(
-            "skywood_leaves",
-            new LeavesBlock(0.1f, AbstractBlock.Settings.create()
-                    .mapColor(MapColor.PALE_PURPLE)
-                    .strength(0.2F)
-                    .ticksRandomly()
-                    .sounds(BlockSoundGroup.GRASS)
-                    .nonOpaque()
-                    .allowsSpawning(Blocks::canSpawnOnLeaves)
-                    .suffocates(Blocks::never)
-                    .blockVision(Blocks::never)
-                    .burnable()
-                    .pistonBehavior(PistonBehavior.DESTROY)
+    public static final Block SKYWOOD_LEAVES = registerBlock("skywood_leaves",
+            properties -> new UntintedParticleLeavesBlock(0.02f, ParticleTypes.CHERRY_LEAVES, properties
+                    .mapColor(MapColor.PALE_PURPLE).strength(0.2F).ticksRandomly()
+                    .sounds(BlockSoundGroup.AZALEA_LEAVES).nonOpaque()
+                    .allowsSpawning(Blocks::canSpawnOnLeaves).suffocates(Blocks::never)
+                    .blockVision(Blocks::never).burnable().pistonBehavior(PistonBehavior.DESTROY)
                     .solidBlock(Blocks::never)
-                    .luminance(state -> 4)         // soft glow
-                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, net.minecraft.util.Identifier.of(MOD_ID, "skywood_leaves")))
-            ) {
-                @Override
-                public MapCodec<? extends LeavesBlock> getCodec() {
-                    return null;
-                }
-
-                @Override
-                protected void spawnLeafParticle(World world, BlockPos pos, Random random) {
-
-                }
-            }
+                    .luminance(state -> 4)
+            )
     );
+
+
+//            register(
+//            "skywood_leaves",
+//            new LeavesBlock(0.1f, AbstractBlock.Settings.copy(Blocks.CHERRY_LEAVES)
+//                    .mapColor(MapColor.PALE_PURPLE)
+//                    .strength(0.2F)
+//                    .ticksRandomly()
+//                    .sounds(BlockSoundGroup.GRASS)
+//                    .nonOpaque()
+//                    //.allowsSpawning(Blocks::canSpawnOnLeaves)
+//                    //.suffocates(Blocks::never)
+//                    //.blockVision(Blocks::never)
+//                    .burnable()
+//                    .pistonBehavior(PistonBehavior.DESTROY)
+//                    .solidBlock(Blocks::never)
+//                    .luminance(state -> 4)         // soft glow
+//                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, net.minecraft.util.Identifier.of(MOD_ID, "skywood_leaves")))
+//            )
+//    );
 
     // ── Ore ────────────────────────────────────────────────────────────────────
 
@@ -218,6 +213,18 @@ public class BuganairBlocks {
     );
 
     // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private static Block registerBlock(String name, Function<AbstractBlock.Settings, Block> function) {
+        Block toRegister = function.apply(AbstractBlock.Settings.create().registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(Buganair.MOD_ID, name))));
+        registerBlockItem(name, toRegister);
+        return Registry.register(Registries.BLOCK, Identifier.of(Buganair.MOD_ID, name), toRegister);
+    }
+
+    private static void registerBlockItem(String name, Block block) {
+        Registry.register(Registries.ITEM, Identifier.of(Buganair.MOD_ID, name),
+                new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey()
+                        .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Buganair.MOD_ID, name)))));
+    }
 
     /**
      * Registers a block AND its corresponding BlockItem in one call.

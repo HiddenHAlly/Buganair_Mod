@@ -2,6 +2,8 @@ package net.hiddenhally.buganair.worldgen;
 
 import net.hiddenhally.buganair.Buganair;
 import net.hiddenhally.buganair.block.BuganairBlocks;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registerable;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -64,31 +66,33 @@ public class BuganairConfiguredFeatures {
                 SKYWOOD_TREE,
                 Feature.TREE,
                 new TreeFeatureConfig.Builder(
-                        BlockStateProvider.of(BuganairBlocks.SKYWOOD_LOG.getDefaultState()),
+                        BlockStateProvider.of(BuganairBlocks.SKYWOOD_LOG),
                         // Same numeric defaults vanilla uses for the cherry tree:
                         // short trunk (4 + 0-2 + 0-2 blocks tall), 1-2 branches,
                         // branches reaching 2-4 blocks out, near the top of the trunk.
                         new CherryTrunkPlacer(
-                                4, 2, 2,
-                                UniformIntProvider.create(1, 2),   // branchCount
+                                5, 2, 2,
+                                UniformIntProvider.create(1, 3),   // branchCount
                                 UniformIntProvider.create(2, 4),   // branchHorizontalLength
                                 UniformIntProvider.create(-3, -2), // branchStartOffsetFromTop (must be UniformIntProvider)
                                 UniformIntProvider.create(-1, 0)   // branchEndOffsetFromTop
                         ),
-                        BlockStateProvider.of(BuganairBlocks.SKYWOOD_LEAVES.getDefaultState()),
+                        BlockStateProvider.of(BuganairBlocks.SKYWOOD_LEAVES),
                         // Wide, gently drooping canopy — matches vanilla cherry's silhouette.
                         new CherryFoliagePlacer(
                                 UniformIntProvider.create(4, 5), // radius
-                                UniformIntProvider.create(0, 1), // offset
+                                UniformIntProvider.create(0, 0), // offset
                                 UniformIntProvider.create(4, 7), // foliage height
-                                0.25F,
-                                0.25F,
-                                0.25F,                             // hangingLeavesChance
-                                0.14F                              // hangingLeavesExtensionChance
+                                0.0F,
+                                0.0F,
+                                0.0F,                             // hangingLeavesChance
+                                0.0F                              // hangingLeavesExtensionChance
                         ),
                         new TwoLayersFeatureSize(1, 0, 2)
                 )
                         .ignoreVines()
+                        .dirtProvider(BlockStateProvider.of(BuganairBlocks.SKYGRASS))
+                        //.dirtProvider(BlockStateProvider.of(BuganairBlocks.SKYGRASS.getDefaultState())) // <-- Add this line here
                         .build()
         );
 

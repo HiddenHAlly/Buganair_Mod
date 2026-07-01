@@ -14,23 +14,30 @@ import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
 import net.minecraft.world.gen.feature.PlacedFeature;
-import net.minecraft.world.gen.placementmodifier.CountPlacementModifier;
 import net.minecraft.world.gen.placementmodifier.HeightRangePlacementModifier;
+import net.minecraft.world.gen.placementmodifier.RarityFilterPlacementModifier;
 import net.minecraft.world.gen.placementmodifier.SquarePlacementModifier;
 
 /**
- * Registers the BuganairIslandFeature Feature type itself (a Feature must be
- * registered in Registries.FEATURE, separately from its ConfiguredFeature/
- * PlacedFeature wrappers), plus the ConfiguredFeature + PlacedFeature that
- * actually spawns floating islands.
+ * Registers the BuganairIslandFeature Feature type, plus its
+ * ConfiguredFeature + PlacedFeature wrappers.
  *
- * Call BuganairFeatures.register() once, early, from BuganairMod.onInitialize()
- * — the same place you'd call BuganairBlocks.register() — so the Feature
- * instance exists before datagen or world load tries to reference it.
+ * DENSITY FIX (this pass): rarity tightened further, from 1-in-24 to
+ * 1-in-96 chunk attempts. 1-in-24 was still producing what read as a
+ * "dense mix" -- for reference, that's roughly one attempt per ~1.5
+ * regions of 16 chunks, which is fairly frequent for a landmark feature.
+ * 1-in-96 is closer to how sparse vanilla's rarer landmark features (e.g.
+ * ancient city attempts, ~1-in-100+ scale rarity) feel. Tune further via
+ * the constant below -- higher number = rarer.
+ *
+ * See BuganairWorldgenInit for the biome-scoping fix (switched from the
+ * broad #minecraft:is_overworld tag to a small curated biome list).
  */
 public class BuganairFeatures {
 
-    /** The raw Feature implementation, registered under Registries.FEATURE. */
+    /** Tune this for overall island frequency. Higher = rarer. 1-in-N chance per chunk attempt. */
+    private static final int ISLAND_RARITY = 96;
+
     public static final Feature<DefaultFeatureConfig> SKY_ISLAND =
             Registry.register(
                     Registries.FEATURE,
@@ -44,15 +51,10 @@ public class BuganairFeatures {
     public static final RegistryKey<PlacedFeature> SKY_ISLAND_PLACED =
             RegistryKey.of(RegistryKeys.PLACED_FEATURE, Identifier.of(Buganair.MOD_ID, "sky_island_placed"));
 
-    /** Trivial init hook — ensures the static SKY_ISLAND field above is loaded. */
     public static void register() {
         Buganair.LOGGER.info("[Buganair] Registering worldgen features...");
     }
 
-    /**
-     * Bootstrap for the ConfiguredFeature registry. Call from your
-     * datagen RegistryBuilder alongside BuganairConfiguredFeatures.bootstrap().
-     */
     public static void bootstrapConfigured(Registerable<ConfiguredFeature<?, ?>> context) {
         context.register(
                 SKY_ISLAND_CONFIGURED,
@@ -61,14 +63,9 @@ public class BuganairFeatures {
     }
 
     /**
-     * Bootstrap for the PlacedFeature registry. Call from your datagen
-     * RegistryBuilder alongside BuganairPlacedFeatures.bootstrap().
-     *
-     * Places islands scattered vertically between y=90 and y=160, roughly
-     * 1 attempt per chunk (tune CountPlacementModifier for density — lower
-     * for sparser skies). NOTE: deliberately does NOT use a heightmap
-     * placement modifier, since islands must be able to spawn floating in
-     * open air rather than snapping to existing terrain surface.
+     * Places islands high (y=140-190) and rare (1-in-96 chunk attempts).
+     * Deliberately no heightmap modifier -- islands must float in open air
+     * rather than snapping to terrain surface.
      */
     public static void bootstrapPlaced(Registerable<PlacedFeature> context) {
         var configuredFeatures = context.getRegistryLookup(RegistryKeys.CONFIGURED_FEATURE);
@@ -80,9 +77,9 @@ public class BuganairFeatures {
                 new PlacedFeature(
                         skyIsland,
                         ImmutableList.of(
-                                CountPlacementModifier.of(1),
+                                RarityFilterPlacementModifier.of(ISLAND_RARITY),
                                 SquarePlacementModifier.of(),
-                                HeightRangePlacementModifier.uniform(YOffset.fixed(90), YOffset.fixed(160)),
+                                HeightRangePlacementModifier.uniform(YOffset.fixed(140), YOffset.fixed(190)),
                                 // FIX: Add biome placement modifier here
                                 net.minecraft.world.gen.placementmodifier.BiomePlacementModifier.of()
                         )

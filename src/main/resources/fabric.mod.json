@@ -19,7 +19,7 @@
 			"net.hiddenhally.buganair.BuganairMod"
 		],
 		"fabric-datagen": [
-			"net.hiddenhally.buganair.BuganairDataGenerator"
+			"net.hiddenhally.buganair.worldgen.BuganairDataGenerator"
 		],
 		"client": [
 			"net.hiddenhally.buganair.BuganairModClient"

@@ -10,18 +10,10 @@ import net.minecraft.world.biome.Biome;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Tags the Sky Islands biome for correct vanilla biome-tag behavior (music,
- * ambient sound, certain spawn rules that key off tags like is_overworld).
+ * Tags the Sky Islands biome for correct vanilla biome-tag behavior.
  *
- * IMPORTANT: this tag alone does NOT make the biome get chosen during
- * terrain generation. Since 1.18, Overworld biome selection runs off a
- * MultiNoiseBiomeSourceParameterList keyed on climate parameters, not tags.
- * See net.hiddenhally.buganair.worldgen.BuganairWorldgenInit for the runtime
- * wiring (BiomeModifications.addFeature) that actually makes sky islands
- * appear in generated worlds by injecting BuganairFeatures.SKY_ISLAND_PLACED
- * into existing overworld biomes, since this mod's islands are placed via a
- * directly-invoked Feature rather than relying on SKY_ISLANDS being
- * "selected" as the region's biome.
+ * API NOTE: 1.21.11 uses getTagBuilder(...), not getOrCreateTagBuilder(...).
+ * .add(RegistryKey<Biome>) takes the RegistryKey directly.
  */
 public class BuganairBiomeTagProvider extends FabricTagProvider<Biome> {
 
@@ -32,6 +24,6 @@ public class BuganairBiomeTagProvider extends FabricTagProvider<Biome> {
     @Override
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
         getTagBuilder(BiomeTags.IS_OVERWORLD)
-                .add(BuganairBiomes.SKY_ISLANDS.getRegistry());
+                .add(BuganairBiomes.SKY_ISLANDS.getValue());
     }
 }
